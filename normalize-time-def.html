@@ -1,32 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>normalize_time - MCP Definition</title>
     <style>
-        :root { --primary: #0070f3; --error: #e00; --success: #0a0; --bg: #f5f5f5; --card: #fff; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: #333; margin: 0; padding: 20px; line-height: 1.5; }
-        .container { max-width: 1000px; margin: 0 auto; }
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        h1 { margin: 0; }
-        .edit-badge { background: #ffeb3b; color: #000; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
-        
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .card { background: var(--card); padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        h2 { margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px; font-size: 1.2rem; }
-        
-        textarea { width: 100%; height: 500px; font-family: monospace; padding: 10px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; }
-        button { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 500; }
-        button:hover { opacity: 0.9; }
-        button.secondary { background: #ccc; color: #000; }
-        
-        .test-case { border: 1px solid #eee; padding: 10px; margin-bottom: 10px; border-radius: 4px; }
-        .test-case.pass { border-left: 4px solid var(--success); }
-        .test-case.fail { border-left: 4px solid var(--error); }
-        .test-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px; }
+        :root {
+            --primary: #0070f3;
+            --error: #e00;
+            --success: #0a0;
+            --bg: #f5f5f5;
+            --card: #fff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        .edit-badge {
+            background: #ffeb3b;
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 500px;
+            font-family: monospace;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button.secondary {
+            background: #ccc;
+            color: #000;
+        }
+
+        .test-case {
+            border: 1px solid #eee;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .test-case.pass {
+            border-left: 4px solid var(--success);
+        }
+
+        .test-case.fail {
+            border-left: 4px solid var(--error);
+        }
+
+        .test-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <header>
@@ -90,10 +184,13 @@
           "SZSE",
           "HKEX",
           "NASDAQ",
-          "NYSE"
+          "NYSE",
+          "LSE",
+          "TSE",
+          "SGX"
         ],
         "default": "SSE",
-        "description": "Financial exchange to align valid trading days if needed. SSE=Shanghai, SZSE=Shenzhen, HKEX=Hong Kong."
+        "description": "Financial exchange to align valid trading days if needed. SSE=Shanghai, SZSE=Shenzhen, HKEX=Hong Kong, etc."
       }
     }
   },
@@ -102,7 +199,8 @@
     "properties": {
       "code": {
         "type": "integer",
-        "description": "Status code: 200 (Success), 400 (Invalid), 422 (Unknown Holiday), 500 (Error)."
+        "enum": [200, 400, 422, 500],
+        "description": "Status code: 200 (Success), 400 (Invalid), 422 (Unknown Holiday/Entity), 500 (Error)."
       },
       "message": {
         "type": "string",
@@ -111,11 +209,23 @@
       "data": {
         "type": "object",
         "properties": {
-          "granularity": { "type": "string" },
+          "granularity": { 
+              "type": "string",
+              "enum": ["year", "month", "day", "hour", "minute", "second"],
+              "description": "Standardized granularity."
+          },
           "entity": { "type": "string", "description": "Original text entity recognized." },
-          "time_category": { "type": "string" },
-          "utc": { "type": "string" },
-          "exchange": { "type": "string" },
+          "time_category": { 
+              "type": "string", 
+              "enum": ["point", "range", "seq"],
+              "description": "Standardized category."
+          },
+          "utc": { "type": "string", "description": "Applied timezone." },
+          "exchange": { 
+              "type": "string", 
+              "enum": ["SSE", "SZSE", "HKEX", "NASDAQ", "NYSE", "LSE", "TSE", "SGX"],
+              "description": "Applied exchange calendar."
+          },
           "times": {
             "type": "array",
             "items": { "type": "string" },
@@ -132,15 +242,44 @@
             "description": "Type classification: 'absolute' (2023-01-01), 'relative' (tomorrow), 'holiday' (Christmas), 'cycle' (every Monday)."
           }
         },
-        "required": ["times", "time_type", "entity"]
+        "required": ["times", "time_type", "entity", "granularity", "time_category", "utc", "exchange"]
       }
     },
     "required": ["code", "message", "data"]
   },
   "supportedHolidays": {
-    "CN": ["Spring Festival", "National Day", "Labor Day", "Dragon Boat Festival", "Mid-Autumn Festival", "Qingming Festival", "New Year's Day"],
-    "US": ["Christmas", "Thanksgiving", "Independence Day", "Labor Day", "Memorial Day", "New Year's Day", "Easter"],
-    "Special": ["Black Friday", "Cyber Monday"]
+    "CN (China)": [
+        "New Year's Day (元旦)", 
+        "Spring Festival (春节)", 
+        "Tomb-Sweeping Day (清明节)", 
+        "Labor Day (劳动节)", 
+        "Dragon Boat Festival (端午节)", 
+        "Mid-Autumn Festival (中秋节)", 
+        "National Day (国庆节)"
+    ],
+    "US (United States)": [
+        "New Year's Day", 
+        "Martin Luther King Jr. Day", 
+        "Presidents' Day", 
+        "Memorial Day", 
+        "Juneteenth", 
+        "Independence Day", 
+        "Labor Day", 
+        "Columbus Day", 
+        "Veterans Day", 
+        "Thanksgiving", 
+        "Christmas"
+    ],
+    "Western/International": [
+        "Easter (复活节)", 
+        "Good Friday", 
+        "Cyber Monday", 
+        "Black Friday", 
+        "Halloween", 
+        "Valentine's Day", 
+        "Mother's Day", 
+        "Father's Day"
+    ]
   }
 }</textarea>
             </div>
@@ -157,50 +296,50 @@
     <script>
         // Injected Data
         const initialTests = [
-  {
-    "name": "Happy Path: Specific Date",
-    "input": {
-      "content": "2024-12-25",
-      "granularity": "day"
-    }
-  },
-  {
-    "name": "Defaults: Relative Time",
-    "input": {
-      "content": "tomorrow"
-    }
-  },
-  {
-    "name": "Holiday: Spring Festival (CN)",
-    "input": {
-      "content": "Spring Festival 2024",
-      "granularity": "day",
-      "time_category": "range"
-    }
-  },
-  {
-    "name": "Holiday: Christmas (US)",
-    "input": {
-      "content": "Christmas next year",
-      "granularity": "day"
-    }
-  },
-  {
-    "name": "Edge Case: Missing Content (Validation Error)",
-    "input": {
-      "granularity": "day"
-    },
-    "expected_error": true
-  },
-  {
-    "name": "Edge Case: Unknown Holiday",
-    "input": {
-      "content": "Mars Landing Day 2050",
-      "granularity": "day"
-    },
-    "expected_error": true
-  }
-];
+            {
+                "name": "Happy Path: Specific Date",
+                "input": {
+                    "content": "2024-12-25",
+                    "granularity": "day"
+                }
+            },
+            {
+                "name": "Defaults: Relative Time",
+                "input": {
+                    "content": "tomorrow"
+                }
+            },
+            {
+                "name": "Holiday: Spring Festival (CN)",
+                "input": {
+                    "content": "Spring Festival 2024",
+                    "granularity": "day",
+                    "time_category": "range"
+                }
+            },
+            {
+                "name": "Holiday: Christmas (US)",
+                "input": {
+                    "content": "Christmas next year",
+                    "granularity": "day"
+                }
+            },
+            {
+                "name": "Edge Case: Missing Content (Validation Error)",
+                "input": {
+                    "granularity": "day"
+                },
+                "expected_error": true
+            },
+            {
+                "name": "Edge Case: Unknown Holiday",
+                "input": {
+                    "content": "Mars Landing Day 2050",
+                    "granularity": "day"
+                },
+                "expected_error": true
+            }
+        ];
 
         // DOM Elements
         const editor = document.getElementById('schemaEditor');
@@ -228,31 +367,31 @@
             try {
                 const schema = JSON.parse(editor.value);
                 // In a real app, we would validate against schema here.
-                
+
                 const cases = document.querySelectorAll('.test-case');
                 initialTests.forEach((test, index) => {
                     const el = cases[index];
                     const statusEl = el.querySelector('.status');
-                    
+
                     // Simple mock logic
                     setTimeout(() => {
                         let isPass = true;
-                        
+
                         // Check validation requirement (content is required)
                         if (index === 4) { // The missing content case
                             // We simulate that the backend validation would fail here
                             // In this mock, we assume 'expected_error' means we successfully caught it.
-                            isPass = true; 
+                            isPass = true;
                         }
 
                         if (test.expected_error) {
-                             el.className = 'test-case pass';
-                             statusEl.innerText = '✅ Passed (Caught Expected Error)';
-                             statusEl.style.color = 'green';
+                            el.className = 'test-case pass';
+                            statusEl.innerText = '✅ Passed (Caught Expected Error)';
+                            statusEl.style.color = 'green';
                         } else {
-                             el.className = 'test-case pass';
-                             statusEl.innerText = '✅ Passed';
-                             statusEl.style.color = 'green';
+                            el.className = 'test-case pass';
+                            statusEl.innerText = '✅ Passed';
+                            statusEl.style.color = 'green';
                         }
                     }, index * 200);
                 });
@@ -270,4 +409,5 @@
         renderTests();
     </script>
 </body>
+
 </html>
