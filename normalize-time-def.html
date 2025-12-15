@@ -12,6 +12,7 @@
             --card: #fff;
             --text: #333;
             --border: #eee;
+            --code-bg: #f6f8fa;
         }
 
         body {
@@ -49,6 +50,7 @@
         h3 {
             margin-top: 25px;
             margin-bottom: 10px;
+            font-weight: 600;
         }
 
         table {
@@ -78,12 +80,26 @@
         }
 
         code {
-            background: #f1f1f1;
+            background: var(--code-bg);
             padding: 2px 5px;
             border-radius: 3px;
             font-family: Consolas, monospace;
             font-size: 0.9em;
             color: #d63384;
+        }
+
+        pre {
+            background: var(--code-bg);
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+        }
+
+        pre code {
+            background: none;
+            color: #333;
+            padding: 0;
         }
 
         .tag {
@@ -126,6 +142,12 @@
         .back-link:hover {
             color: var(--primary);
         }
+
+        .json-block {
+            font-family: Consolas, monospace;
+            font-size: 0.85rem;
+            color: #24292e;
+        }
     </style>
 </head>
 
@@ -136,6 +158,7 @@
         <h1>时间标准化 (normalize_time)</h1>
         <p>将自然语言描述的时间（如“下周五”、“24年春节”、“明天下午三点”）转换为标准化的绝对时间格式。支持自定义时间粒度、节假日识别以及交易所交易日历对齐。</p>
 
+        <!-- 1. API Definition tables -->
         <h2>💻 API 接口定义</h2>
 
         <h3>输入参数 Request</h3>
@@ -151,14 +174,11 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>code>content</code></td>
+                    <td><code>content</code></td>
                     <td>String</td>
                     <td><span class="tag req">是</span></td>
                     <td>-</td>
-                    <td>
-                        自然语言描述的时间实体。
-                        <br><i>示例： "下周五", "2024年春节", "Q1 2025"</i>
-                    </td>
+                    <td>自然语言描述的时间实体。<br><i>示例： "下周五", "2024年春节", "Q1 2025"</i></td>
                 </tr>
                 <tr>
                     <td><code>granularity</code></td>
@@ -169,12 +189,8 @@
                         时间粒度。
                         <br><strong>枚举值：</strong>
                         <ul class="enum-list">
-                            <li><code>year</code>: 年</li>
-                            <li><code>month</code>: 月</li>
-                            <li><code>day</code>: 日</li>
-                            <li><code>hour</code>: 小时</li>
-                            <li><code>minute</code>: 分</li>
-                            <li><code>second</code>: 秒</li>
+                            <li><code>year</code>, <code>month</code>, <code>day</code></li>
+                            <li><code>hour</code>, <code>minute</code>, <code>second</code></li>
                         </ul>
                     </td>
                 </tr>
@@ -187,9 +203,7 @@
                         时间种类。
                         <br><strong>枚举值：</strong>
                         <ul class="enum-list">
-                            <li><code>point</code>: 时间点 (如 "今天")</li>
-                            <li><code>range</code>: 时间区间 (如 "五一假期")</li>
-                            <li><code>seq</code>: 时间序列 (如 "每周一")</li>
+                            <li><code>point</code> (时间点), <code>range</code> (区间), <code>seq</code> (序列)</li>
                         </ul>
                     </td>
                 </tr>
@@ -198,7 +212,7 @@
                     <td>String</td>
                     <td><span class="tag opt">否</span></td>
                     <td><code>UTC+8</code></td>
-                    <td>时区设置，用于计算相对时间（如“明天”）。</td>
+                    <td>时区设置。</td>
                 </tr>
                 <tr>
                     <td><code>exchange</code></td>
@@ -207,17 +221,8 @@
                     <td><code>SSE</code></td>
                     <td>
                         交易所代码（用于对齐交易日）。
-                        <br><strong>枚举值：</strong>
-                        <ul class="enum-list">
-                            <li><code>SSE</code>: 上海证券交易所</li>
-                            <li><code>SZSE</code>: 深圳证券交易所</li>
-                            <li><code>HKEX</code>: 香港交易所</li>
-                            <li><code>NASDAQ</code>: 纳斯达克</li>
-                            <li><code>NYSE</code>: 纽约证券交易所</li>
-                            <li><code>LSE</code>: 伦敦证券交易所</li>
-                            <li><code>TSE</code>: 东京证券交易所</li>
-                            <li><code>SGX</code>: 新加坡交易所</li>
-                        </ul>
+                        <br><strong>枚举值：</strong> <code>SSE</code>, <code>SZSE</code>, <code>HKEX</code>,
+                        <code>NASDAQ</code>, <code>NYSE</code>, <code>LSE</code>, <code>TSE</code>, <code>SGX</code>
                     </td>
                 </tr>
             </tbody>
@@ -229,6 +234,7 @@
                 <tr>
                     <th>参数名</th>
                     <th style="width: 10%">类型</th>
+                    <th style="width: 8%">必填</th>
                     <th>说明</th>
                 </tr>
             </thead>
@@ -236,40 +242,153 @@
                 <tr>
                     <td><code>code</code></td>
                     <td>Integer</td>
-                    <td>
-                        响应状态码。
-                        <ul class="enum-list">
-                            <li><code>200</code>: 成功</li>
-                            <li><code>400</code>: 请求参数无效</li>
-                            <li><code>422</code>: 无法识别的节假日或实体</li>
-                            <li><code>500</code>: 内部错误</li>
-                        </ul>
+                    <td><span class="tag req">是</span></td>
+                    <td>状态码：<code>200</code> (成功), <code>400</code> (无效), <code>422</code> (未识别), <code>500</code> (错误)
                     </td>
                 </tr>
                 <tr>
                     <td><code>message</code></td>
                     <td>String</td>
+                    <td><span class="tag req">是</span></td>
                     <td>人类可读的响应消息。</td>
                 </tr>
                 <tr>
                     <td><code>data</code></td>
                     <td>Object</td>
+                    <td><span class="tag req">是</span></td>
                     <td>
-                        返回的数据主体。
-                        <br><strong>结构：</strong>
+                        数据载体，包含：
                         <ul class="enum-list">
-                            <li><code>entity</code> (String): 识别到的原始文本</li>
-                            <li><code>times</code> (Array&lt;String&gt;): 标准化后的时间列表 (ISO格式)</li>
-                            <li><code>time_type</code> (String): 时间类型 [<code>absolute</code>, <code>relative</code>,
-                                <code>holiday</code>, <code>cycle</code>]</li>
-                            <li>以及请求中的 <code>granularity</code>, <code>time_category</code>, <code>utc</code>,
-                                <code>exchange</code> 回显</li>
+                            <li><code>granularity</code> (String, req)</li>
+                            <li><code>entity</code> (String, req): 原始文本</li>
+                            <li><code>time_category</code> (String, req)</li>
+                            <li><code>utc</code> (String, req)</li>
+                            <li><code>exchange</code> (String, req)</li>
+                            <li><code>times</code> (Array&lt;String&gt;, req): ISO时间列表</li>
+                            <li><code>time_type</code> (String, req): <code>absolute</code>, <code>relative</code>,
+                                <code>holiday</code>, <code>cycle</code></li>
                         </ul>
                     </td>
                 </tr>
             </tbody>
         </table>
 
+        <!-- 2. Test Cases (Static) -->
+        <h2>🧪 测试用例 (Test Cases)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 20%">测试场景</th>
+                    <th style="width: 35%">输入 (Input)</th>
+                    <th style="width: 45%">预期输出 (Expected Output Data)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Happy Path</strong><br>(标准日期)</td>
+                    <td>
+                        <code>content: "2024-12-25"</code><br>
+                        <code>granularity: "day"</code>
+                    </td>
+                    <td>
+                        <code>times: ["2024-12-25 00:00:00"]</code><br>
+                        <code>time_type: "absolute"</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Holiday</strong><br>(节假日/区间)</td>
+                    <td>
+                        <code>content: "Spring Festival 2024"</code><br>
+                        <code>time_category: "range"</code>
+                    </td>
+                    <td>
+                        <code>times: ["2024-02-10 00:00:00", "2024-02-17 23:59:59"]</code><br>
+                        <code>time_type: "holiday"</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Edge Case</strong><br>(相对时间)</td>
+                    <td>
+                        <code>content: "Next Friday"</code><br>
+                        <code>utc: "UTC+8"</code>
+                    </td>
+                    <td>
+                        <code>times: ["2025-12-19 00:00:00"]</code> (假设当前是12日)<br>
+                        <code>time_type: "relative"</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Validation Error</strong><br>(缺失内容)</td>
+                    <td>
+                        <code>content: ""</code> or null
+                    </td>
+                    <td>
+                        <span style="color:red">Code: 400</span><br>
+                        Message: "Content is required"
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- 3. JSON Schemas -->
+        <h2>📜 JSON Schema 构造</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <h3>Input Schema (LLM Request)</h3>
+                <pre class="json-block">{
+  "type": "object",
+  "required": ["content"],
+  "properties": {
+    "content": { "type": "string" },
+    "granularity": { 
+      "type": "string", 
+      "enum": ["year", "month", "day", "hour", "minute", "second"],
+      "default": "day"
+    },
+    "time_category": {
+      "type": "string", 
+      "enum": ["point", "range", "seq"], 
+      "default": "point"
+    },
+    "utc": { "type": "string", "default": "UTC+8" },
+    "exchange": { 
+      "type": "string", 
+      "enum": ["SSE", "SZSE", "HKEX", "NASDAQ", "NYSE", "LSE", "TSE", "SGX"],
+      "default": "SSE"
+    }
+  }
+}</pre>
+            </div>
+            <div>
+                <h3>Output Schema (LLM Response)</h3>
+                <pre class="json-block">{
+  "type": "object",
+  "required": ["code", "message", "data"],
+  "properties": {
+    "code": { "type": "integer" },
+    "message": { "type": "string" },
+    "data": {
+      "type": "object",
+      "required": ["times", "time_type", "entity"],
+      "properties": {
+        "granularity": { "type": "string" },
+        "entity": { "type": "string" },
+        "time_category": { "type": "string" },
+        "utc": { "type": "string" },
+        "exchange": { "type": "string" },
+        "times": { "type": "array", "items": { "type": "string" } },
+        "time_type": { 
+          "type": "string",
+          "enum": ["absolute", "relative", "holiday", "cycle"]
+        }
+      }
+    }
+  }
+}</pre>
+            </div>
+        </div>
+
+        <!-- 4. Holiday List -->
         <h2>📅 附录：支持的节假日表</h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
             <div>
@@ -292,8 +411,8 @@
                     <li>Presidents' Day</li>
                     <li>Memorial Day / Juneteenth</li>
                     <li>Independence Day</li>
-                    <li>Labor Day / Columbus Day</li>
-                    <li>Veterans Day / Thanksgiving / Christmas</li>
+                    <li>Labor Day</li>
+                    <li>Thanksgiving / Christmas</li>
                 </ul>
             </div>
             <div>
@@ -302,9 +421,7 @@
                     <li>Easter (复活节)</li>
                     <li>Good Friday</li>
                     <li>Black Friday / Cyber Monday</li>
-                    <li>Halloween</li>
-                    <li>Valentine's Day</li>
-                    <li>Mother's Day / Father's Day</li>
+                    <li>Halloween / Valentine's Day</li>
                 </ul>
             </div>
         </div>
