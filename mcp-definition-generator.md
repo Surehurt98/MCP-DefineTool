@@ -33,9 +33,13 @@ Activate when the user wants to define, visualize, or document an MCP tool:
 Analyze the User Input.
 *   **IF** JSON is provided: Use it as the source of truth.
 *   **IF** only a description is provided (e.g., "Stock Price Checker"):
-    *   **Infer Inputs**: `ticker` (string), `market` (enum: NASDAQ, NYSE), `period` (string: 1d, 1mo).
+    *   **Infer Inputs**: `ticker` (string, desc="Stock symbol"), `market` (enum: NASDAQ="US Tech", NYSE="US General"), `period`.
     *   **Infer Outputs**: `price` (number), `currency` (string), `timestamp` (string).
     *   **Infer Description**: Generating a professional description if missing.
+    *   **Detailed Enums**: For any enum field, explicitly list and describe each valid value.
+    *   **LLM Schema Construction**:
+        *   Define a strict **Input Schema** (JSON Schema) that an LLM would use to call the tool.
+        *   Define a strict **Output Schema** (JSON Schema) that the LLM should expect to receive.
 
 ### Step 2: Test Case Generation
 
@@ -237,3 +241,5 @@ When regenerating, ensure:
 1.  **Missing Params**: If user doesn't say "required", assume optional unless it's obviously needed (like `url` for a fetcher).
 2.  **Test Coverage**: Ensure at least one `expected_error: true` case exists in the JSON.
 3.  **File Naming**: Use kebab-case for filenames, but preserve casing in JSON `name` fields.
+4.  **Schema Completeness**: Ensure every field has a `description`, and enums have clear value explanations.
+5.  **LLM Compatibility**: Verify input/output schemas follow standard JSON Schema patterns usable by current LLMs.
