@@ -4,360 +4,464 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>时间标准化 (normalize_time) - MCP API文档</title>
-    <!-- Quill CSS -->
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <title>MCP 工具定义配置器: normalize_time</title>
     <style>
         :root {
-            --primary: #0070f3;
-            --bg: #f5f5f5;
-            --card: #fff;
-            --text: #333;
-            --border: #eee;
+            --primary: #2563eb;
+            --primary-light: #eff6ff;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --tag-bg: #f1f5f9;
+            --tag-text: #475569;
+        }
+
+        * {
+            box-sizing: border-box;
+            outline: none;
         }
 
         body {
-            font-family: "PingFang SC", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: var(--bg);
-            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-main);
             margin: 0;
-            padding: 20px;
+            padding: 40px 20px;
             line-height: 1.6;
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 0 auto;
-            background: var(--card);
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            display: grid;
+            gap: 24px;
         }
 
-        h1 {
-            border-bottom: 2px solid var(--border);
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-        }
-
-        .toolbar {
+        /* Header Section */
+        header {
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            padding: 24px 32px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+        }
+
+        .header-left h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
             gap: 10px;
-            margin-bottom: 20px;
         }
 
-        button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 500;
-            font-family: inherit;
-        }
-
-        button:hover {
-            opacity: 0.9;
-        }
-
-        button.secondary {
-            background: #666;
-        }
-
-        .back-link {
-            display: inline-block;
-            margin-bottom: 20px;
-            text-decoration: none;
-            color: #666;
-            font-size: 0.9em;
-        }
-
-        .back-link:hover {
-            color: var(--primary);
-        }
-
-        /* Custom Styles for Table within Editor */
-        .ql-editor table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
+        .header-left p {
+            margin: 8px 0 0;
+            color: var(--text-sub);
             font-size: 0.95rem;
         }
 
-        .ql-editor th,
-        .ql-editor td {
-            border: 1px solid #ccc;
-            padding: 12px;
+        .version-badge {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: white;
+            border-color: var(--border);
+            color: var(--text-main);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-page);
+        }
+
+        .btn-edit.active {
+            background: #fef3c7;
+            border-color: #f59e0b;
+            color: #b45309;
+        }
+
+        /* Card Style */
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px 32px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fdfdfd;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 0;
+        }
+
+        /* Modern Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
             text-align: left;
+            padding: 16px 24px;
+            background: #f8fafc;
+            color: var(--text-sub);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.95rem;
             vertical-align: top;
         }
 
-        .ql-editor th {
-            background: #f9fafb;
-            font-weight: 600;
-            color: #444;
-            width: 15%;
+        tr:last-child td {
+            border-bottom: none;
         }
 
-        .ql-editor code {
-            background: #f1f1f1;
-            padding: 2px 5px;
-            border-radius: 3px;
-            font-family: Consolas, monospace;
-            font-size: 0.9em;
+        tr:hover {
+            background-color: #fcfcfc;
+        }
+
+        /* Tags & Badges */
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+
+        .tag-gray {
+            background: var(--tag-bg);
+            color: var(--tag-text);
+            border: 1px solid #e2e8f0;
+        }
+
+        .tag-red {
+            background: #fef2f2;
+            color: #ef4444;
+            border: 1px solid #fee2e2;
+        }
+
+        .tag-blue {
+            background: #eff6ff;
+            color: #3b82f6;
+            border: 1px solid #dbeafe;
+        }
+
+        .code-font {
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
             color: #d63384;
+            background: #fdf2f8;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
         }
 
-        .status-msg {
-            margin-left: 10px;
-            color: green;
-            display: none;
+        /* Edit Mode Styles */
+        body.edit-mode .editable {
+            border: 1px dashed #cbd5e1;
+            background: #fffbeb;
+            cursor: text;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
+        body.edit-mode .editable:hover {
+            border-color: #f59e0b;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 20px;
+            margin-bottom: -1px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 0 0 12px;
+            font-weight: 500;
+            color: var(--text-sub);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
         }
     </style>
 </head>
 
 <body>
+
     <div class="container">
-        <a href="index.html" class="back-link">← 返回工具列表</a>
+        <a href="index.html" style="text-decoration:none; color:var(--text-sub); font-size:0.9rem;">← 返回工具列表</a>
 
-        <div class="toolbar">
-            <span id="statusMsg" class="status-msg">已保存！</span>
-            <button onclick="saveContent()">💾 保存/导出 HTML</button>
+        <!-- Top Header -->
+        <header>
+            <div class="header-left">
+                <h1>
+                    <span class="editable" contenteditable="false">normalize_time</span>
+                    <span class="version-badge">v1.0.0</span>
+                </h1>
+                <p class="editable" contenteditable="false">将自然语言描述的时间（如“下周五”、“24年春节”）转换为标准化的绝对时间格式。</p>
+            </div>
+            <div class="actions">
+                <button class="btn btn-secondary btn-edit" onclick="toggleEditMode()">✏️ 编辑模式</button>
+                <button class="btn btn-primary" onclick="exportJSON()">🚀 导出配置</button>
+            </div>
+        </header>
+
+        <!-- Request Definition -->
+        <div class="card">
+            <div class="card-header">
+                <h2>📥 输入参数定义 (Request)</h2>
+                <div class="tabs">
+                    <button class="tab-btn active">表格视图</button>
+                    <button class="tab-btn">JSON Schema</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="15%">参数名</th>
+                            <th width="10%">类型</th>
+                            <th width="8%">必填</th>
+                            <th width="12%">默认值</th>
+                            <th>完整说明 / 枚举值 (Enums)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="code-font editable" contenteditable="false">content</td>
+                            <td><span class="tag tag-gray">String</span></td>
+                            <td><span class="tag tag-red">Required</span></td>
+                            <td class="code-font">-</td>
+                            <td class="editable" contenteditable="false">自然语言描述的时间实体。<br>示例："下周五", "2024年春节"</td>
+                        </tr>
+                        <tr>
+                            <td class="code-font editable" contenteditable="false">granularity</td>
+                            <td><span class="tag tag-gray">String</span></td>
+                            <td><span class="tag tag-blue">Optional</span></td>
+                            <td class="code-font">day</td>
+                            <td>
+                                <div class="editable" contenteditable="false" style="margin-bottom:8px">所需的时间粒度。</div>
+                                <div>
+                                    <span class="tag tag-gray">year</span>
+                                    <span class="tag tag-gray">month</span>
+                                    <span class="tag tag-gray">day</span>
+                                    <span class="tag tag-gray">hour</span>
+                                    <span class="tag tag-gray">minute</span>
+                                    <span class="tag tag-gray">second</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="code-font editable" contenteditable="false">time_category</td>
+                            <td><span class="tag tag-gray">String</span></td>
+                            <td><span class="tag tag-blue">Optional</span></td>
+                            <td class="code-font">point</td>
+                            <td>
+                                <div class="editable" contenteditable="false" style="margin-bottom:8px">时间类型分类。</div>
+                                <div>
+                                    <span class="tag tag-gray">point (时间点)</span>
+                                    <span class="tag tag-gray">range (时间区间)</span>
+                                    <span class="tag tag-gray">seq (时间序列)</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="code-font editable" contenteditable="false">exchange</td>
+                            <td><span class="tag tag-gray">String</span></td>
+                            <td><span class="tag tag-blue">Optional</span></td>
+                            <td class="code-font">SSE</td>
+                            <td>
+                                <div class="editable" contenteditable="false" style="margin-bottom:8px">用于对齐交易日历的交易所代码。
+                                </div>
+                                <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                                    <span class="tag tag-gray">SSE (上海)</span>
+                                    <span class="tag tag-gray">SZSE (深圳)</span>
+                                    <span class="tag tag-gray">HKEX (香港)</span>
+                                    <span class="tag tag-gray">NASDAQ</span>
+                                    <span class="tag tag-gray">NYSE</span>
+                                    <span class="tag tag-gray">LSE (伦敦)</span>
+                                    <span class="tag tag-gray">TSE (东京)</span>
+                                    <span class="tag tag-gray">SGX (新加坡)</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
-        <div id="editor">
-            <h1>时间标准化 (normalize_time)</h1>
-            <p>将自然语言描述的时间（如“下周五”、“24年春节”、“明天下午三点”）转换为标准化的绝对时间格式。支持自定义时间粒度、节假日识别以及交易所交易日历对齐。</p>
-
-            <h2>💻 API 接口定义</h2>
-
-            <h3>输入参数 Request</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>参数名</th>
-                        <th width="10%">类型</th>
-                        <th width="8%">必填</th>
-                        <th width="15%">默认值</th>
-                        <th>说明 / 枚举值 (Enums)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><code>content</code></td>
-                        <td>String</td>
-                        <td>是</td>
-                        <td>-</td>
-                        <td>自然语言描述的时间实体。<br><i>示例： "下周五", "2024年春节", "Q1 2025"</i></td>
-                    </tr>
-                    <tr>
-                        <td><code>granularity</code></td>
-                        <td>String</td>
-                        <td>否</td>
-                        <td><code>day</code></td>
-                        <td>
-                            时间粒度，精确程度。<br>
-                            <strong>所有枚举值：</strong>
-                            <ul>
-                                <li><code>year</code> (年)</li>
-                                <li><code>month</code> (月)</li>
-                                <li><code>day</code> (日)</li>
-                                <li><code>hour</code> (时)</li>
-                                <li><code>minute</code> (分)</li>
-                                <li><code>second</code> (秒)</li>
-                            </ul>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><code>time_category</code></td>
-                        <td>String</td>
-                        <td>否</td>
-                        <td><code>point</code></td>
-                        <td>
-                            时间种类分类。<br>
-                            <strong>所有枚举值：</strong>
-                            <ul>
-                                <li><code>point</code>: 时间点 (如 "今天")</li>
-                                <li><code>range</code>: 时间区间 (如 "五一假期", "1月到3月")</li>
-                                <li><code>seq</code>: 时间序列 (如 "每周一", "每月1号")</li>
-                            </ul>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><code>utc</code></td>
-                        <td>String</td>
-                        <td>否</td>
-                        <td><code>UTC+8</code></td>
-                        <td>时区设置，用于计算相对时间。默认为中国标准时间。</td>
-                    </tr>
-                    <tr>
-                        <td><code>exchange</code></td>
-                        <td>String</td>
-                        <td>否</td>
-                        <td><code>SSE</code></td>
-                        <td>
-                            交易所代码（用于对齐交易日历）。<br>
-                            <strong>所有枚举值：</strong>
-                            <ul>
-                                <li><code>SSE</code> (Shanghai Stock Exchange - 上海)</li>
-                                <li><code>SZSE</code> (Shenzhen Stock Exchange - 深圳)</li>
-                                <li><code>HKEX</code> (Hong Kong Stock Exchange - 香港)</li>
-                                <li><code>NASDAQ</code> (Nasdaq Stock Market - 纳斯达克)</li>
-                                <li><code>NYSE</code> (New York Stock Exchange - 纽交所)</li>
-                                <li><code>LSE</code> (London Stock Exchange - 伦敦)</li>
-                                <li><code>TSE</code> (Tokyo Stock Exchange - 东京)</li>
-                                <li><code>SGX</code> (Singapore Exchange - 新加坡)</li>
-                            </ul>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <h3>输出参数 Response</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>参数名</th>
-                        <th width="10%">类型</th>
-                        <th width="8%">必填</th>
-                        <th>说明 / 结构详情</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><code>code</code></td>
-                        <td>Integer</td>
-                        <td>是</td>
-                        <td>
-                            状态码。<br>
-                            <ul>
-                                <li><code>200</code>: 成功 (Success)</li>
-                                <li><code>400</code>: 请求参数无效 (Invalid Request)</li>
-                                <li><code>422</code>: 语义无法识别/未知节假日 (Unprocessable Entity)</li>
-                                <li><code>500</code>: 内部服务错误 (Internal Server Error)</li>
-                            </ul>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><code>message</code></td>
-                        <td>String</td>
-                        <td>是</td>
-                        <td>状态描述信息。</td>
-                    </tr>
-                    <tr>
-                        <td><code>data</code></td>
-                        <td>Object</td>
-                        <td>是</td>
-                        <td>
-                            核心数据对象。<br>
-                            <strong>包含以下必填字段：</strong>
-                            <ul>
-                                <li><code>granularity</code> (String): 返回请求时的粒度。</li>
-                                <li><code>entity</code> (String): 识别到的原始时间文本。</li>
-                                <li><code>time_category</code> (String): 识别到的时间类别。</li>
-                                <li><code>utc</code> (String): 使用的时区。</li>
-                                <li><code>exchange</code> (String): 使用的交易所日历。</li>
-                                <li><code>times</code> (Array&lt;String&gt;): ISO 8601 标准时间字符串列表。</li>
-                                <li><code>time_type</code> (String): 时间类型标记。<br>
-                                    枚举: <code>absolute</code> (绝对), <code>relative</code> (相对), <code>holiday</code>
-                                    (节假日), <code>cycle</code> (周期)
-                                </li>
-                            </ul>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <h2>🧪 测试用例 (Test Cases)</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th width="20%">测试场景</th>
-                        <th width="35%">输入 (Input)</th>
-                        <th width="45%">预期输出 (Expected Output)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>Happy Path</strong></td>
-                        <td><code>{"content": "2024-12-25", "granularity": "day"}</code></td>
-                        <td><code>{"times": ["2024-12-25 00:00:00"], "time_type": "absolute"}</code></td>
-                    </tr>
-                    <tr>
-                        <td><strong>Holiday (Range)</strong></td>
-                        <td><code>{"content": "Spring Festival 2024", "time_category": "range"}</code></td>
-                        <td><code>{"times": ["2024-02-10...", "2024-02-17..."], "time_type": "holiday"}</code></td>
-                    </tr>
-                    <tr>
-                        <td><strong>Edge Case</strong></td>
-                        <td><code>{"content": "Next Friday", "utc": "UTC+8"}</code></td>
-                        <td><code>{"times": ["..."], "time_type": "relative"}</code> (Depends on Today)</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Error Case</strong></td>
-                        <td><code>{"content": ""}</code></td>
-                        <td><code>code: 400</code>, <code>message: "Content is required"</code></td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <h2>📜 JSON Schema 参考</h2>
-            <pre>
-{
-  "description": "Input Schema for LLM Call",
-  "type": "object",
-  "required": ["content"],
-  "properties": {
-    "content": { "type": "string" },
-    "granularity": { "enum": ["year", "month", "day", "hour", "minute", "second"] },
-    "time_category": { "enum": ["point", "range", "seq"] },
-    "utc": { "type": "string" },
-    "exchange": { "enum": ["SSE", "SZSE", "HKEX", "NASDAQ", "NYSE", "LSE", "TSE", "SGX"] }
-  }
-}
-            </pre>
+        <!-- Response Definition -->
+        <div class="card">
+            <div class="card-header">
+                <h2>📤 输出参数定义 (Response)</h2>
+            </div>
+            <div class="card-body">
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="15%">参数名</th>
+                            <th width="10%">类型</th>
+                            <th width="40%">说明</th>
+                            <th>枚举 / 示例</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="code-font editable" contenteditable="false">code</td>
+                            <td><span class="tag tag-gray">Integer</span></td>
+                            <td class="editable" contenteditable="false">业务状态码，标识请求处理结果。</td>
+                            <td>
+                                <span class="tag tag-gray">200</span>
+                                <span class="tag tag-gray">400</span>
+                                <span class="tag tag-gray">422</span>
+                                <span class="tag tag-gray">500</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="code-font editable" contenteditable="false">data</td>
+                            <td><span class="tag tag-gray">Object</span></td>
+                            <td class="editable" contenteditable="false">
+                                包含标准化后的核心数据。<br>
+                                <strong>Structure:</strong>
+                                <ul>
+                                    <li><code>times</code>: Array&lt;String&gt; (ISO dates)</li>
+                                    <li><code>time_type</code>: String</li>
+                                    <li><code>entity</code>: String</li>
+                                </ul>
+                            </td>
+                            <td>-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
+        <!-- Test Cases -->
+        <div class="card">
+            <div class="card-header">
+                <h2>🧪 测试用例 (Test Cases)</h2>
+            </div>
+            <div class="card-body">
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="20%">场景</th>
+                            <th width="40%">输入 (Input)</th>
+                            <th>预期输出 (Expected)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="editable" contenteditable="false"><strong>Happy Path</strong></td>
+                            <td class="code-font editable" contenteditable="false">{"content": "2024-12-25"}</td>
+                            <td class="code-font editable" contenteditable="false">{"times": ["2024-12-25 00:00:00"]}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="editable" contenteditable="false"><strong>Holiday</strong></td>
+                            <td class="code-font editable" contenteditable="false">{"content": "春节 2024",
+                                "time_category": "range"}</td>
+                            <td class="code-font editable" contenteditable="false">{"time_type": "holiday", "times":
+                                ["2024-02-10", "2024-02-17"]}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
-    <!-- Quill JS -->
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script>
-        var quill = new Quill('#editor', {
-            theme: 'snow',
-            modules: {
-                toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike', 'code'],
-                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                    [{ 'color': [] }, { 'background': [] }],
-                    ['link', 'clean']
-                ]
-            }
-        });
+        let isEditMode = false;
 
-        function saveContent() {
-            // In a real app, this would POST to a backend.
-            // For this static tool, we copy the inner HTML code so the developer can update the file.
-            const htmlContent = document.querySelector('.ql-editor').innerHTML;
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            document.body.classList.toggle('edit-mode', isEditMode);
 
-            // Hacky way to offer "Save": Copy full HTML structure to clipboard or download
-            // Creating a Blob for download
-            const fullPage = document.documentElement.outerHTML.replace(
-                document.getElementById('editor').innerHTML,
-                '<div id="editor">' + htmlContent + '</div>'
-            );
+            const btn = document.querySelector('.btn-edit');
+            btn.textContent = isEditMode ? '💾 完成编辑' : '✏️ 编辑模式';
+            btn.classList.toggle('active', isEditMode);
 
-            navigator.clipboard.writeText(htmlContent).then(() => {
-                const msg = document.getElementById('statusMsg');
-                msg.style.display = 'inline';
-                msg.innerText = "内容HTML已复制到剪贴板！(可在本地编辑器中覆盖)";
-                setTimeout(() => msg.style.display = 'none', 3000);
-            });
+            const editables = document.querySelectorAll('.editable');
+            editables.forEach(el => el.setAttribute('contenteditable', isEditMode));
+        }
+
+        function exportJSON() {
+            alert("已导出配置！(这是演示功能，实际会生成JSON文件)");
         }
     </script>
+
 </body>
 
 </html>
