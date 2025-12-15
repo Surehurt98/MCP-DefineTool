@@ -38,7 +38,8 @@ Analyze the User Input.
     *   **Infer Inputs**: `ticker` (string, desc="Stock symbol"), `market` (enum: NASDAQ="US Tech", NYSE="US General"), `period`.
     *   **Infer Outputs**: `price` (number), `currency` (string), `timestamp` (string).
     *   **Infer Description**: Generating a professional description if missing.
-    *   **Detailed Enums**: For any enum field, explicitly list and describe each valid value.
+    *   **Detailed Enums**: For any enum field, explicitly list **EVERY** valid value in the description. Do NOT use "etc." or partial lists.
+    *   **Editability**: The generated HTML must place the JSON Schema in an editable `<textarea>` so the user can modify it before exporting.
     *   **LLM Schema Construction**:
         *   Define a strict **Input Schema** (JSON Schema) that an LLM would use to call the tool.
         *   Define a strict **Output Schema** (JSON Schema) that the LLM should expect to receive.
@@ -255,3 +256,4 @@ When regenerating, ensure:
 3.  **File Naming**: Use kebab-case for filenames, but preserve casing in JSON `name` fields.
 4.  **Schema Completeness**: Ensure every field has a `description`, and enums have clear value explanations.
 5.  **LLM Compatibility**: Verify input/output schemas follow standard JSON Schema patterns usable by current LLMs.
+6.  **Granularity**: Do not omit fields. Describe every parameter fully, including all potential enum values, defaults, and type constraints.
