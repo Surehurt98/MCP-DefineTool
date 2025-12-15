@@ -6,13 +6,15 @@ license: MIT
 
 # Interactive MCP Tool Definition Generator
 
-## 🔇 Silent Execution Protocol
+## 🤝 Collaborative Protocol
 
 > **CRITICAL INSTRUCTIONS FOR CLAUDE:**
 >
-> 1.  **Do NOT ask for clarification.** If the user description is vague (e.g., "a weather tool"), YOU MUST INFER the most likely parameters (e.g., city, unit) and output schema.
-> 2.  **Generate ALL files in one go.** Do not stop between the HTML file and the Deploy script.
-> 3.  **Assume "Yes" for defaults.** If input is missing, use reasonable defaults.
+> 1.  **CONFIRM BEFORE GENERATING.** Always list the inferred Input/Output Schema and Test Cases in the chat first. Ask the user for approval.
+> 2.  **Wait for User Approval.** Do NOT generate the HTML file until the user says "Yes" or provides corrections.
+> 3.  **Mandatory Outputs**: The final HTML **MUST** include:
+>     *   A "Test Cases" section (static list of examples).
+>     *   The raw "Input/Output Schema" (JSON Schema) visible on the page (e.g., in a code block or collapsible section).
 > 4.  **Do not split CSS/JS.** Keep everything in a single HTML file for portability.
 
 ---
@@ -40,8 +42,18 @@ Analyze the User Input.
     *   **LLM Schema Construction**:
         *   Define a strict **Input Schema** (JSON Schema) that an LLM would use to call the tool.
         *   Define a strict **Output Schema** (JSON Schema) that the LLM should expect to receive.
+    *   **Test Case Inference**: Propose at least 3 specific test cases (Happy Path, Edge Case, Error Case).
 
-### Step 2: Test Case Generation
+### Step 2: Confirmation & Refinement
+
+**STOP AND ASK THE USER:**
+"Here is the proposed definition for [Tool Name]:
+**Inputs:** [List]
+**Outputs:** [List]
+**Test Cases:** [List]
+Do you want to proceed with this definition?"
+
+### Step 3: Generate Interactive HTML (`[tool-name]-def.html`)
 
 Generate a `test_cases` array with at least 3 types of tests:
 1.  **Happy Path**: A perfectly valid request.
@@ -50,7 +62,7 @@ Generate a `test_cases` array with at least 3 types of tests:
 
 ### Step 3: Generate Interactive HTML (`[tool-name]-def.html`)
 
-Create a single HTML file containing the **Schema**, **Test Cases**, and **UI**.
+Create a single HTML file containing the **Schema Tables**, **Raw JSON Schema**, **Test Case Examples**, and **UI**.
 
 **UI Requirements:**
 *   **Editable JSON Editor**: Allow users to modify the inferred schema directly in the browser.
