@@ -1,413 +1,315 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>normalize_time - MCP Definition</title>
+    <title>时间标准化 (normalize_time) - MCP API文档</title>
     <style>
         :root {
             --primary: #0070f3;
-            --error: #e00;
-            --success: #0a0;
             --bg: #f5f5f5;
             --card: #fff;
+            --text: #333;
+            --border: #eee;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: "PingFang SC", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background: var(--bg);
-            color: #333;
+            color: var(--text);
             margin: 0;
             padding: 20px;
-            line-height: 1.5;
+            line-height: 1.6;
         }
 
         .container {
             max-width: 1000px;
             margin: 0 auto;
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+            background: var(--card);
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
 
         h1 {
-            margin: 0;
-        }
-
-        .edit-badge {
-            background: #ffeb3b;
-            color: #000;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .card {
-            background: var(--card);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         h2 {
-            margin-top: 0;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-            font-size: 1.2rem;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            color: var(--primary);
+            border-left: 4px solid var(--primary);
+            padding-left: 10px;
         }
 
-        textarea {
-            width: 100%;
-            height: 500px;
-            font-family: monospace;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            resize: vertical;
-        }
-
-        button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 500;
-        }
-
-        button:hover {
-            opacity: 0.9;
-        }
-
-        button.secondary {
-            background: #ccc;
-            color: #000;
-        }
-
-        .test-case {
-            border: 1px solid #eee;
-            padding: 10px;
+        h3 {
+            margin-top: 25px;
             margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        th,
+        td {
+            border: 1px solid var(--border);
+            padding: 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #444;
+            width: 15%;
+        }
+
+        tr:hover {
+            background: #fdfdfd;
+        }
+
+        code {
+            background: #f1f1f1;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Consolas, monospace;
+            font-size: 0.9em;
+            color: #d63384;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 6px;
             border-radius: 4px;
-        }
-
-        .test-case.pass {
-            border-left: 4px solid var(--success);
-        }
-
-        .test-case.fail {
-            border-left: 4px solid var(--error);
-        }
-
-        .test-header {
-            display: flex;
-            justify-content: space-between;
+            font-size: 0.8em;
             font-weight: bold;
-            margin-bottom: 5px;
+        }
+
+        .tag.req {
+            background: #ffebeb;
+            color: #d32f2f;
+        }
+
+        .tag.opt {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .enum-list {
+            margin: 0;
+            padding-left: 20px;
+            list-style-type: disc;
+            color: #555;
+        }
+
+        .enum-list li {
+            margin-bottom: 4px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            text-decoration: none;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <header>
+        <a href="index.html" class="back-link">← 返回工具列表</a>
+
+        <h1>时间标准化 (normalize_time)</h1>
+        <p>将自然语言描述的时间（如“下周五”、“24年春节”、“明天下午三点”）转换为标准化的绝对时间格式。支持自定义时间粒度、节假日识别以及交易所交易日历对齐。</p>
+
+        <h2>💻 API 接口定义</h2>
+
+        <h3>输入参数 Request</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>参数名</th>
+                    <th style="width: 10%">类型</th>
+                    <th style="width: 8%">必填</th>
+                    <th style="width: 15%">默认值</th>
+                    <th>说明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>code>content</code></td>
+                    <td>String</td>
+                    <td><span class="tag req">是</span></td>
+                    <td>-</td>
+                    <td>
+                        自然语言描述的时间实体。
+                        <br><i>示例： "下周五", "2024年春节", "Q1 2025"</i>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>granularity</code></td>
+                    <td>String</td>
+                    <td><span class="tag opt">否</span></td>
+                    <td><code>day</code></td>
+                    <td>
+                        时间粒度。
+                        <br><strong>枚举值：</strong>
+                        <ul class="enum-list">
+                            <li><code>year</code>: 年</li>
+                            <li><code>month</code>: 月</li>
+                            <li><code>day</code>: 日</li>
+                            <li><code>hour</code>: 小时</li>
+                            <li><code>minute</code>: 分</li>
+                            <li><code>second</code>: 秒</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>time_category</code></td>
+                    <td>String</td>
+                    <td><span class="tag opt">否</span></td>
+                    <td><code>point</code></td>
+                    <td>
+                        时间种类。
+                        <br><strong>枚举值：</strong>
+                        <ul class="enum-list">
+                            <li><code>point</code>: 时间点 (如 "今天")</li>
+                            <li><code>range</code>: 时间区间 (如 "五一假期")</li>
+                            <li><code>seq</code>: 时间序列 (如 "每周一")</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>utc</code></td>
+                    <td>String</td>
+                    <td><span class="tag opt">否</span></td>
+                    <td><code>UTC+8</code></td>
+                    <td>时区设置，用于计算相对时间（如“明天”）。</td>
+                </tr>
+                <tr>
+                    <td><code>exchange</code></td>
+                    <td>String</td>
+                    <td><span class="tag opt">否</span></td>
+                    <td><code>SSE</code></td>
+                    <td>
+                        交易所代码（用于对齐交易日）。
+                        <br><strong>枚举值：</strong>
+                        <ul class="enum-list">
+                            <li><code>SSE</code>: 上海证券交易所</li>
+                            <li><code>SZSE</code>: 深圳证券交易所</li>
+                            <li><code>HKEX</code>: 香港交易所</li>
+                            <li><code>NASDAQ</code>: 纳斯达克</li>
+                            <li><code>NYSE</code>: 纽约证券交易所</li>
+                            <li><code>LSE</code>: 伦敦证券交易所</li>
+                            <li><code>TSE</code>: 东京证券交易所</li>
+                            <li><code>SGX</code>: 新加坡交易所</li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>输出参数 Response</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>参数名</th>
+                    <th style="width: 10%">类型</th>
+                    <th>说明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>code</code></td>
+                    <td>Integer</td>
+                    <td>
+                        响应状态码。
+                        <ul class="enum-list">
+                            <li><code>200</code>: 成功</li>
+                            <li><code>400</code>: 请求参数无效</li>
+                            <li><code>422</code>: 无法识别的节假日或实体</li>
+                            <li><code>500</code>: 内部错误</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>message</code></td>
+                    <td>String</td>
+                    <td>人类可读的响应消息。</td>
+                </tr>
+                <tr>
+                    <td><code>data</code></td>
+                    <td>Object</td>
+                    <td>
+                        返回的数据主体。
+                        <br><strong>结构：</strong>
+                        <ul class="enum-list">
+                            <li><code>entity</code> (String): 识别到的原始文本</li>
+                            <li><code>times</code> (Array&lt;String&gt;): 标准化后的时间列表 (ISO格式)</li>
+                            <li><code>time_type</code> (String): 时间类型 [<code>absolute</code>, <code>relative</code>,
+                                <code>holiday</code>, <code>cycle</code>]</li>
+                            <li>以及请求中的 <code>granularity</code>, <code>time_category</code>, <code>utc</code>,
+                                <code>exchange</code> 回显</li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>📅 附录：支持的节假日表</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
             <div>
-                <h1>normalize_time <span class="edit-badge">DRAFT</span></h1>
-                <p>Natural language time normalization tool supporting holidays, ranges, and fuzzy matching.</p>
+                <h3>🇨🇳 中国 (CN)</h3>
+                <ul class="enum-list">
+                    <li>Spring Festival (春节)</li>
+                    <li>New Year's Day (元旦)</li>
+                    <li>Tomb-Sweeping Day (清明节)</li>
+                    <li>Labor Day (劳动节)</li>
+                    <li>Dragon Boat Festival (端午节)</li>
+                    <li>Mid-Autumn Festival (中秋节)</li>
+                    <li>National Day (国庆节)</li>
+                </ul>
             </div>
-            <button onclick="saveDefinition()">💾 Export JSON</button>
-        </header>
-
-        <div class="grid">
-            <!-- Schema Editor -->
-            <div class="card">
-                <h2>📐 Tool Definition (Editable)</h2>
-                <p style="font-size: 0.9rem; color: #666;">Edit this JSON to modify inputs/outputs.</p>
-                <textarea id="schemaEditor">{
-  "name": "normalize_time",
-  "description": "Converts natural language time descriptions (points, ranges, sequences) into standardized absolute formats. Supports holidays, varying granularities, and trading calendars.",
-  "inputSchema": {
-    "type": "object",
-    "required": [
-      "content"
-    ],
-    "properties": {
-      "content": {
-        "type": "string",
-        "description": "Natural language text containing time info. Examples: 'next Friday', 'Spring Festival 2024', 'Q1 2025'."
-      },
-      "granularity": {
-        "type": "string",
-        "enum": [
-          "year",
-          "month",
-          "day",
-          "hour",
-          "minute",
-          "second"
-        ],
-        "default": "day",
-        "description": "Time precision required. Defaults to 'day'."
-      },
-      "time_category": {
-        "type": "string",
-        "enum": [
-          "point",
-          "range",
-          "seq"
-        ],
-        "default": "point",
-        "description": "Category of time: 'point' (single moment), 'range' (duration start/end), 'seq' (recurring or multiple)."
-      },
-      "utc": {
-        "type": "string",
-        "default": "UTC+8",
-        "description": "Timezone offset for relative calculations (e.g., 'tomorrow')."
-      },
-      "exchange": {
-        "type": "string",
-        "enum": [
-          "SSE",
-          "SZSE",
-          "HKEX",
-          "NASDAQ",
-          "NYSE",
-          "LSE",
-          "TSE",
-          "SGX"
-        ],
-        "default": "SSE",
-        "description": "Financial exchange to align valid trading days if needed. SSE=Shanghai, SZSE=Shenzhen, HKEX=Hong Kong, etc."
-      }
-    }
-  },
-  "outputSchema": {
-    "type": "object",
-    "properties": {
-      "code": {
-        "type": "integer",
-        "enum": [200, 400, 422, 500],
-        "description": "Status code: 200 (Success), 400 (Invalid), 422 (Unknown Holiday/Entity), 500 (Error)."
-      },
-      "message": {
-        "type": "string",
-        "description": "Human-readable status message."
-      },
-      "data": {
-        "type": "object",
-        "properties": {
-          "granularity": { 
-              "type": "string",
-              "enum": ["year", "month", "day", "hour", "minute", "second"],
-              "description": "Standardized granularity."
-          },
-          "entity": { "type": "string", "description": "Original text entity recognized." },
-          "time_category": { 
-              "type": "string", 
-              "enum": ["point", "range", "seq"],
-              "description": "Standardized category."
-          },
-          "utc": { "type": "string", "description": "Applied timezone." },
-          "exchange": { 
-              "type": "string", 
-              "enum": ["SSE", "SZSE", "HKEX", "NASDAQ", "NYSE", "LSE", "TSE", "SGX"],
-              "description": "Applied exchange calendar."
-          },
-          "times": {
-            "type": "array",
-            "items": { "type": "string" },
-            "description": "List of standardized time strings (ISO format)."
-          },
-          "time_type": {
-            "type": "string",
-            "enum": [
-              "absolute",
-              "relative",
-              "holiday",
-              "cycle"
-            ],
-            "description": "Type classification: 'absolute' (2023-01-01), 'relative' (tomorrow), 'holiday' (Christmas), 'cycle' (every Monday)."
-          }
-        },
-        "required": ["times", "time_type", "entity", "granularity", "time_category", "utc", "exchange"]
-      }
-    },
-    "required": ["code", "message", "data"]
-  },
-  "supportedHolidays": {
-    "CN (China)": [
-        "New Year's Day (元旦)", 
-        "Spring Festival (春节)", 
-        "Tomb-Sweeping Day (清明节)", 
-        "Labor Day (劳动节)", 
-        "Dragon Boat Festival (端午节)", 
-        "Mid-Autumn Festival (中秋节)", 
-        "National Day (国庆节)"
-    ],
-    "US (United States)": [
-        "New Year's Day", 
-        "Martin Luther King Jr. Day", 
-        "Presidents' Day", 
-        "Memorial Day", 
-        "Juneteenth", 
-        "Independence Day", 
-        "Labor Day", 
-        "Columbus Day", 
-        "Veterans Day", 
-        "Thanksgiving", 
-        "Christmas"
-    ],
-    "Western/International": [
-        "Easter (复活节)", 
-        "Good Friday", 
-        "Cyber Monday", 
-        "Black Friday", 
-        "Halloween", 
-        "Valentine's Day", 
-        "Mother's Day", 
-        "Father's Day"
-    ]
-  }
-}</textarea>
+            <div>
+                <h3>🇺🇸 美国 (US)</h3>
+                <ul class="enum-list">
+                    <li>New Year's Day</li>
+                    <li>Martin Luther King Jr. Day</li>
+                    <li>Presidents' Day</li>
+                    <li>Memorial Day / Juneteenth</li>
+                    <li>Independence Day</li>
+                    <li>Labor Day / Columbus Day</li>
+                    <li>Veterans Day / Thanksgiving / Christmas</li>
+                </ul>
             </div>
-
-            <!-- Test Suite -->
-            <div class="card">
-                <h2>🧪 Test Suite</h2>
-                <div id="testContainer"></div>
-                <button onclick="runTests()" style="margin-top: 10px;">▶ Run All Tests</button>
+            <div>
+                <h3>🌍 国际/西方 (Intl)</h3>
+                <ul class="enum-list">
+                    <li>Easter (复活节)</li>
+                    <li>Good Friday</li>
+                    <li>Black Friday / Cyber Monday</li>
+                    <li>Halloween</li>
+                    <li>Valentine's Day</li>
+                    <li>Mother's Day / Father's Day</li>
+                </ul>
             </div>
         </div>
+
     </div>
-
-    <script>
-        // Injected Data
-        const initialTests = [
-            {
-                "name": "Happy Path: Specific Date",
-                "input": {
-                    "content": "2024-12-25",
-                    "granularity": "day"
-                }
-            },
-            {
-                "name": "Defaults: Relative Time",
-                "input": {
-                    "content": "tomorrow"
-                }
-            },
-            {
-                "name": "Holiday: Spring Festival (CN)",
-                "input": {
-                    "content": "Spring Festival 2024",
-                    "granularity": "day",
-                    "time_category": "range"
-                }
-            },
-            {
-                "name": "Holiday: Christmas (US)",
-                "input": {
-                    "content": "Christmas next year",
-                    "granularity": "day"
-                }
-            },
-            {
-                "name": "Edge Case: Missing Content (Validation Error)",
-                "input": {
-                    "granularity": "day"
-                },
-                "expected_error": true
-            },
-            {
-                "name": "Edge Case: Unknown Holiday",
-                "input": {
-                    "content": "Mars Landing Day 2050",
-                    "granularity": "day"
-                },
-                "expected_error": true
-            }
-        ];
-
-        // DOM Elements
-        const editor = document.getElementById('schemaEditor');
-        const testContainer = document.getElementById('testContainer');
-
-        // Render Initial Tests
-        function renderTests() {
-            testContainer.innerHTML = '';
-            initialTests.forEach((test, index) => {
-                const div = document.createElement('div');
-                div.className = 'test-case';
-                div.innerHTML = `
-                    <div class="test-header">
-                        <span>${test.name}</span>
-                        <span class="status">Waiting</span>
-                    </div>
-                    <pre style="margin:0; font-size:0.8rem; background:#f9f9f9; padding:5px;">Input: ${JSON.stringify(test.input)}</pre>
-                `;
-                testContainer.appendChild(div);
-            });
-        }
-
-        // Mock Run Tests
-        function runTests() {
-            try {
-                const schema = JSON.parse(editor.value);
-                // In a real app, we would validate against schema here.
-
-                const cases = document.querySelectorAll('.test-case');
-                initialTests.forEach((test, index) => {
-                    const el = cases[index];
-                    const statusEl = el.querySelector('.status');
-
-                    // Simple mock logic
-                    setTimeout(() => {
-                        let isPass = true;
-
-                        // Check validation requirement (content is required)
-                        if (index === 4) { // The missing content case
-                            // We simulate that the backend validation would fail here
-                            // In this mock, we assume 'expected_error' means we successfully caught it.
-                            isPass = true;
-                        }
-
-                        if (test.expected_error) {
-                            el.className = 'test-case pass';
-                            statusEl.innerText = '✅ Passed (Caught Expected Error)';
-                            statusEl.style.color = 'green';
-                        } else {
-                            el.className = 'test-case pass';
-                            statusEl.innerText = '✅ Passed';
-                            statusEl.style.color = 'green';
-                        }
-                    }, index * 200);
-                });
-            } catch (e) {
-                alert("Invalid JSON in definition editor!");
-            }
-        }
-
-        function saveDefinition() {
-            const content = editor.value;
-            navigator.clipboard.writeText(content).then(() => alert("Definition copied to clipboard!"));
-        }
-
-        // Init
-        renderTests();
-    </script>
 </body>
 
 </html>
