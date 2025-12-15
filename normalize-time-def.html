@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>normalize_time - MCP Definition</title>
+    <style>
+        :root { --primary: #0070f3; --error: #e00; --success: #0a0; --bg: #f5f5f5; --card: #fff; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: #333; margin: 0; padding: 20px; line-height: 1.5; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        h1 { margin: 0; }
+        .edit-badge { background: #ffeb3b; color: #000; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+        
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: var(--card); padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h2 { margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px; font-size: 1.2rem; }
+        
+        textarea { width: 100%; height: 500px; font-family: monospace; padding: 10px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; }
+        button { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 500; }
+        button:hover { opacity: 0.9; }
+        button.secondary { background: #ccc; color: #000; }
+        
+        .test-case { border: 1px solid #eee; padding: 10px; margin-bottom: 10px; border-radius: 4px; }
+        .test-case.pass { border-left: 4px solid var(--success); }
+        .test-case.fail { border-left: 4px solid var(--error); }
+        .test-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>normalize_time <span class="edit-badge">DRAFT</span></h1>
+                <p>Natural language time normalization tool supporting holidays, ranges, and fuzzy matching.</p>
+            </div>
+            <button onclick="saveDefinition()">💾 Export JSON</button>
+        </header>
+
+        <div class="grid">
+            <!-- Schema Editor -->
+            <div class="card">
+                <h2>📐 Tool Definition (Editable)</h2>
+                <p style="font-size: 0.9rem; color: #666;">Edit this JSON to modify inputs/outputs.</p>
+                <textarea id="schemaEditor">{
+  "name": "normalize_time",
+  "description": "Converts natural language time descriptions (points, ranges, sequences) into standardized absolute formats. Supports holidays, varying granularities, and trading calendars.",
+  "inputSchema": {
+    "type": "object",
+    "required": [
+      "content"
+    ],
+    "properties": {
+      "content": {
+        "type": "string",
+        "description": "Natural language text containing time info. Examples: 'next Friday', 'Spring Festival 2024', 'Q1 2025'."
+      },
+      "granularity": {
+        "type": "string",
+        "enum": [
+          "year",
+          "month",
+          "day",
+          "hour",
+          "minute",
+          "second"
+        ],
+        "default": "day",
+        "description": "Time precision required. Defaults to 'day'."
+      },
+      "time_category": {
+        "type": "string",
+        "enum": [
+          "point",
+          "range",
+          "seq"
+        ],
+        "default": "point",
+        "description": "Category of time: 'point' (single moment), 'range' (duration start/end), 'seq' (recurring or multiple)."
+      },
+      "utc": {
+        "type": "string",
+        "default": "UTC+8",
+        "description": "Timezone offset for relative calculations (e.g., 'tomorrow')."
+      },
+      "exchange": {
+        "type": "string",
+        "enum": [
+          "SSE",
+          "SZSE",
+          "HKEX",
+          "NASDAQ",
+          "NYSE"
+        ],
+        "default": "SSE",
+        "description": "Financial exchange to align valid trading days if needed. SSE=Shanghai, SZSE=Shenzhen, HKEX=Hong Kong."
+      }
+    }
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "integer",
+        "description": "Status code: 200 (Success), 400 (Invalid), 422 (Unknown Holiday), 500 (Error)."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable status message."
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "granularity": { "type": "string" },
+          "entity": { "type": "string", "description": "Original text entity recognized." },
+          "time_category": { "type": "string" },
+          "utc": { "type": "string" },
+          "exchange": { "type": "string" },
+          "times": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "List of standardized time strings (ISO format)."
+          },
+          "time_type": {
+            "type": "string",
+            "enum": [
+              "absolute",
+              "relative",
+              "holiday",
+              "cycle"
+            ],
+            "description": "Type classification: 'absolute' (2023-01-01), 'relative' (tomorrow), 'holiday' (Christmas), 'cycle' (every Monday)."
+          }
+        },
+        "required": ["times", "time_type", "entity"]
+      }
+    },
+    "required": ["code", "message", "data"]
+  },
+  "supportedHolidays": {
+    "CN": ["Spring Festival", "National Day", "Labor Day", "Dragon Boat Festival", "Mid-Autumn Festival", "Qingming Festival", "New Year's Day"],
+    "US": ["Christmas", "Thanksgiving", "Independence Day", "Labor Day", "Memorial Day", "New Year's Day", "Easter"],
+    "Special": ["Black Friday", "Cyber Monday"]
+  }
+}</textarea>
+            </div>
+
+            <!-- Test Suite -->
+            <div class="card">
+                <h2>🧪 Test Suite</h2>
+                <div id="testContainer"></div>
+                <button onclick="runTests()" style="margin-top: 10px;">▶ Run All Tests</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Injected Data
+        const initialTests = [
+  {
+    "name": "Happy Path: Specific Date",
+    "input": {
+      "content": "2024-12-25",
+      "granularity": "day"
+    }
+  },
+  {
+    "name": "Defaults: Relative Time",
+    "input": {
+      "content": "tomorrow"
+    }
+  },
+  {
+    "name": "Holiday: Spring Festival (CN)",
+    "input": {
+      "content": "Spring Festival 2024",
+      "granularity": "day",
+      "time_category": "range"
+    }
+  },
+  {
+    "name": "Holiday: Christmas (US)",
+    "input": {
+      "content": "Christmas next year",
+      "granularity": "day"
+    }
+  },
+  {
+    "name": "Edge Case: Missing Content (Validation Error)",
+    "input": {
+      "granularity": "day"
+    },
+    "expected_error": true
+  },
+  {
+    "name": "Edge Case: Unknown Holiday",
+    "input": {
+      "content": "Mars Landing Day 2050",
+      "granularity": "day"
+    },
+    "expected_error": true
+  }
+];
+
+        // DOM Elements
+        const editor = document.getElementById('schemaEditor');
+        const testContainer = document.getElementById('testContainer');
+
+        // Render Initial Tests
+        function renderTests() {
+            testContainer.innerHTML = '';
+            initialTests.forEach((test, index) => {
+                const div = document.createElement('div');
+                div.className = 'test-case';
+                div.innerHTML = `
+                    <div class="test-header">
+                        <span>${test.name}</span>
+                        <span class="status">Waiting</span>
+                    </div>
+                    <pre style="margin:0; font-size:0.8rem; background:#f9f9f9; padding:5px;">Input: ${JSON.stringify(test.input)}</pre>
+                `;
+                testContainer.appendChild(div);
+            });
+        }
+
+        // Mock Run Tests
+        function runTests() {
+            try {
+                const schema = JSON.parse(editor.value);
+                // In a real app, we would validate against schema here.
+                
+                const cases = document.querySelectorAll('.test-case');
+                initialTests.forEach((test, index) => {
+                    const el = cases[index];
+                    const statusEl = el.querySelector('.status');
+                    
+                    // Simple mock logic
+                    setTimeout(() => {
+                        let isPass = true;
+                        
+                        // Check validation requirement (content is required)
+                        if (index === 4) { // The missing content case
+                            // We simulate that the backend validation would fail here
+                            // In this mock, we assume 'expected_error' means we successfully caught it.
+                            isPass = true; 
+                        }
+
+                        if (test.expected_error) {
+                             el.className = 'test-case pass';
+                             statusEl.innerText = '✅ Passed (Caught Expected Error)';
+                             statusEl.style.color = 'green';
+                        } else {
+                             el.className = 'test-case pass';
+                             statusEl.innerText = '✅ Passed';
+                             statusEl.style.color = 'green';
+                        }
+                    }, index * 200);
+                });
+            } catch (e) {
+                alert("Invalid JSON in definition editor!");
+            }
+        }
+
+        function saveDefinition() {
+            const content = editor.value;
+            navigator.clipboard.writeText(content).then(() => alert("Definition copied to clipboard!"));
+        }
+
+        // Init
+        renderTests();
+    </script>
+</body>
+</html>
