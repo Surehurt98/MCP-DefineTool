@@ -10,14 +10,15 @@ license: MIT
 
 > **CRITICAL INSTRUCTIONS FOR CLAUDE:**
 >
-> 1.  **CONFIRM BEFORE GENERATING.** Always list the inferred Input/Output Schema and Test Cases in the chat first. Ask the user for approval.
-> 2.  **Wait for User Approval.** Do NOT generate the HTML file until the user says "Yes" or provides corrections.
-> 3.  **Mandatory Outputs**: The final HTML **MUST** include:
+> 1.  **HEURISTIC DISCOVERY FIRST.** Before inferring anything, start with a "Heuristic Discovery" dialogue (Process Detective) to clarify inputs, outputs, defaults, and blockers.
+> 2.  **CONFIRM BEFORE GENERATING.** After Discovery, list the inferred details and ask for approval.
+> 3.  **Wait for User Approval.** Do NOT generate the HTML file until the user says "Yes" or provides corrections.
+> 4.  **Mandatory Outputs**: The final HTML **MUST** include:
 >     *   **Modern UI**: Use the provided Saas-style template with functional Tabs and Edit Mode.
 >     *   **Editable Enums**: All enum values must be in `<span class="tag ...">` pills that are `contentEditable`.
 >     *   **Functional Tabs**: Users must be able to switch between "Table View" and "JSON View".
 >     *   **Comprehensive Tests**: You must generate at least **6 diverse test scenarios** (Happy Path, Edge Case, Error, Holiday/Special, Relative/Fuzzy, System/Calendar).
-> 4.  **Do not split CSS/JS.** Keep everything in a single HTML file for portability.
+> 5.  **Do not split CSS/JS.** Keep everything in a single HTML file for portability.
 
 ---
 
@@ -32,9 +33,17 @@ Activate when the user wants to define, visualize, or document an MCP tool:
 
 ## ⚙️ Execution Instructions
 
-### Step 1: Intelligent Inference (The "Brain")
+### Step 1: Heuristic Discovery (The "Detective")
 
-Analyze the User Input.
+**Before** inferring the schema, act as a "Process Detective" to ensure the tool is automation-ready. Ask the user:
+*   **Format**: "What are the specific Input and Output formats?"
+*   **Blockers (CRITICAL)**: "If input data is missing, what default should be used? If output is too long, should it be chunked?"
+*   **Suitability**: "Is this task atomic enough for a single MCP tool?"
+*   **Context**: "Should this be split into multiple tools or merged?"
+
+### Step 2: Intelligent Inference (The "Brain")
+
+Analyze the User Input (and Discovery results).
 *   **IF** JSON is provided: Use it as the source of truth.
 *   **IF** only a description is provided:
     *   **Infer Inputs/Outputs**: thoroughly.
@@ -48,16 +57,17 @@ Analyze the User Input.
         5.  **System/Calendar**: If applicable (holidays, weekends).
         6.  **Boundary**: Min/Max limits.
 
-### Step 2: Confirmation & Refinement
+### Step 3: Confirmation & Refinement
 
 **STOP AND ASK THE USER:**
-"Here is the proposed definition for [Tool Name]:
+"Based on our discovery, here is the proposed definition for [Tool Name]:
 **Inputs:** [List]
 **Outputs:** [List]
-**Test Cases:** [6 Scenarios Summary]
+**Tests:** [6 Scenarios]
+**Automation Strategy:** [Defaults/Limits identified in Step 1]
 Do you want to proceed with this definition?"
 
-### Step 3: Generate Interactive HTML (`[tool-name]-def.html`)
+### Step 4: Generate Interactive HTML (`[tool-name]-def.html`)
 
 **Use the HTML Template provided below.**
 You need to inject the generated HTML rows for Inputs, Outputs, and Test Cases into the template placeholders.
@@ -65,7 +75,7 @@ You need to inject the generated HTML rows for Inputs, Outputs, and Test Cases i
 *   **For Enums**: Use the `<div class="tag-container">` structure with `contenteditable` spans. Add a green `+` tag at the end.
 *   **For Tables**: Ensure every cell that SHOULD be editable has `class="editable" contenteditable="false"`.
 
-### Step 4: Generate Deployment Script (`deploy-mcp-[tool-name].ps1`)
+### Step 5: Generate Deployment Script (`deploy-mcp-[tool-name].ps1`)
 
 Create a PowerShell script to push the generated file to GitHub Pages.
 
