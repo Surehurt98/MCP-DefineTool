@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP 工具注册中心 - 工具详情</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        .code-block {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            font-family: "Cascadia Code", "Fira Code", monospace;
+        }
+
+        .nav-active {
+            border-bottom: 2px solid #3b82f6;
+            color: #3b82f6;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+        }
+
+        /* ========== 发布弹窗样式 ========== */
+        .modal-overlay {
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-container {
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* 按钮样式 */
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            padding: 0.625rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-primary:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #374151;
+            padding: 0.625rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            border: 1px solid #d1d5db;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+        }
+
+        .btn-secondary:disabled {
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #6b7280;
+            padding: 0.625rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            border: 1px solid #e5e7eb;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-outline:hover {
+            background: #f9fafb;
+            color: #374151;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            font-size: 0.875rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-danger:disabled {
+            background: #fca5a5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 0.625rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+        }
+
+        /* 步骤进度条 */
+        .step-progress {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .step-dot {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .step-dot.completed {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .step-dot.active {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: white;
+            box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.2);
+        }
+
+        .step-dot.pending {
+            background: #e5e7eb;
+            color: #9ca3af;
+        }
+
+        .step-line {
+            flex: 1;
+            height: 2px;
+            background: #e5e7eb;
+            margin: 1rem 0.25rem;
+            transition: background 0.3s ease;
+        }
+
+        .step-line.completed {
+            background: linear-gradient(90deg, #10b981, #059669);
+        }
+
+        /* 校验结果样式 */
+        .check-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .check-item.pass {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+        }
+
+        .check-item.fail {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+        }
+
+        .check-item.pending {
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+        }
+
+        .check-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .check-icon.pass {
+            background: #10b981;
+            color: white;
+        }
+
+        .check-icon.fail {
+            background: #ef4444;
+            color: white;
+        }
+
+        .check-icon.pending {
+            background: #9ca3af;
+            color: white;
+        }
+
+        /* AI 评分圆环 */
+        .score-ring {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(#10b981 0deg, #10b981 var(--score-deg), #e5e7eb var(--score-deg));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .score-ring-inner {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .score-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #10b981;
+        }
+
+        .score-label {
+            font-size: 0.625rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* 确认复选框 */
+        .confirm-checkbox {
+            display: flex;
+            align-items: flex-start;
+            padding: 1rem;
+            background: #fefce8;
+            border: 1px solid #fde047;
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .confirm-checkbox:hover {
+            background: #fef9c3;
+        }
+
+        .confirm-checkbox.checked {
+            background: #ecfdf5;
+            border-color: #a7f3d0;
+        }
+
+        .confirm-checkbox input[type="checkbox"] {
+            width: 1.25rem;
+            height: 1.25rem;
+            margin-right: 0.75rem;
+            cursor: pointer;
+            accent-color: #10b981;
+        }
+
+        /* 二次确认输入框 */
+        .confirm-input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .confirm-input:focus {
+            outline: none;
+            border-color: #f97316;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+        }
+
+        .confirm-input.valid {
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+
+        /* 成功动画 */
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981, #059669);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            animation: successPop 0.5s ease;
+        }
+
+        @keyframes successPop {
+            0% {
+                transform: scale(0);
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .success-icon i {
+            font-size: 2.5rem;
+            color: white;
+        }
+
+        /* 模拟调用示例 */
+        .ai-example {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .ai-example-label {
+            font-size: 0.625rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+
+        .ai-example-text {
+            font-size: 0.875rem;
+            color: #334155;
+            line-height: 1.5;
+        }
+
+        /* 加载动画 */
+        .loading-spinner {
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #e5e7eb;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body class="text-gray-800">
+
+    <!-- 1️⃣ 全局导航栏 -->
+    <nav
+        class="fixed top-0 w-full h-14 bg-white border-b border-gray-200 z-50 flex items-center justify-between px-6 shadow-sm">
+        <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-2">
+                <div class="bg-blue-600 p-1.5 rounded-lg">
+                    <i class="fas fa-microchip text-white text-lg"></i>
+                </div>
+                <span class="font-bold text-lg tracking-tight">MCP 工具注册中心</span>
+            </div>
+            <div class="h-6 w-px bg-gray-200 mx-4"></div>
+            <div class="flex space-x-6 text-sm font-medium text-gray-500">
+                <a href="#" class="hover:text-blue-600">首页</a>
+                <a href="#" class="nav-active pb-4 mt-4">MCP工具</a>
+                <a href="#" class="hover:text-blue-600">原始 HTTP 接口</a>
+                <a href="#" class="hover:text-blue-600">原始 Expo 接口</a>
+                <a href="#" class="hover:text-blue-600">应用服务节点</a>
+                <a href="#" class="hover:text-blue-600">帮助文档</a>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-2 text-sm text-gray-600 cursor-pointer hover:bg-gray-100 p-2 rounded">
+                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">J
+                </div>
+                <span>jfi.virgil</span>
+                <i class="fas fa-chevron-down text-xs text-gray-400"></i>
+            </div>
+        </div>
+    </nav>
+
+    <div class="pt-14 flex flex-col min-h-screen">
+
+        <!-- 2️⃣ 页面路径 & 工具标题区 -->
+        <header class="bg-white border-b border-gray-200 px-8 py-5">
+            <nav class="text-xs text-gray-400 mb-3 flex items-center space-x-2">
+                <span>首页</span><i class="fas fa-chevron-right scale-75"></i>
+                <span>MCP工具</span><i class="fas fa-chevron-right scale-75"></i>
+                <span class="text-gray-600 font-medium">options_double_shark_fin_pricer</span>
+            </nav>
+            <div class="flex justify-between items-start">
+                <div class="flex items-center space-x-4">
+                    <div class="bg-gray-100 p-3 rounded-xl border border-gray-200">
+                        <i class="fas fa-cog text-2xl text-gray-600"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-3 mb-1">
+                            <h1 class="text-2xl font-bold text-gray-900">options_double_shark_fin_pricer</h1>
+                            <span
+                                class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded border border-green-200">有效</span>
+                            <span
+                                class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-bold rounded border border-blue-200">tool</span>
+                            <span
+                                class="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-bold rounded border border-purple-200 text-xs uppercase font-mono">v1</span>
+                        </div>
+                        <p class="text-sm text-gray-500">用于计算双鲨鱼鳍期权定价及敏感度分析的 MCP 核心组件</p>
+                    </div>
+                </div>
+                <div class="flex space-x-2">
+                    <button
+                        class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition flex items-center">
+                        <i class="fas fa-arrow-left mr-2"></i>返回列表
+                    </button>
+                    <button
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm transition flex items-center">
+                        <i class="fas fa-edit mr-2"></i>编辑工具
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 二、中部：核心信息展示区 -->
+        <main class="flex-grow p-8 flex gap-6">
+
+            <!-- 左侧主内容区 (70%) -->
+            <div class="w-2/3 space-y-6">
+
+                <!-- 1. 原始 HTTP 接口信息卡片 -->
+                <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 flex items-center space-x-2">
+                        <i class="fas fa-link text-blue-500"></i>
+                        <h2 class="font-bold">原始 HTTP 接口信息</h2>
+                    </div>
+                    <div class="p-6 grid grid-cols-2 gap-y-6 gap-x-12">
+                        <div class="col-span-1">
+                            <label
+                                class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">工具编号</label>
+                            <p class="text-sm font-mono text-gray-800">OP-DSF-2024-001</p>
+                        </div>
+                        <div class="col-span-1">
+                            <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">工具名称
+                                (中)</label>
+                            <p class="text-sm text-gray-800 font-medium">双鲨鱼鳍期权定价计算器</p>
+                        </div>
+                        <div class="col-span-2">
+                            <label
+                                class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">功能描述</label>
+                            <p class="text-sm text-gray-600 leading-relaxed">基于 Black-Scholes 模型的扩展，专门针对双向障碍期权（Double
+                                Shark Fin）进行定价。支持自定义敲入敲出价格、期限、波动率及无风险利率。常用于场外衍生品报价辅助及风险中性估值。</p>
+                        </div>
+
+                        <div class="col-span-2 border-t border-gray-100 pt-6">
+                            <div class="flex justify-between items-end mb-2">
+                                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">输入参数 JSON
+                                    示例</label>
+                                <span class="text-xs text-blue-500 cursor-pointer hover:underline">复制</span>
+                            </div>
+                            <div
+                                class="code-block p-4 rounded-lg overflow-x-auto text-xs leading-5 shadow-inner border border-gray-800">
+                                <pre>{
+  "underlying_asset": "000300.SH",
+  "strike_price": 3800.0,
+  "upper_barrier": 4200.0,
+  "lower_barrier": 3400.0,
+  "volatility": 0.18,
+  "risk_free_rate": 0.025,
+  "expiry_date": "2024-12-31"
+}</pre>
+                            </div>
+                        </div>
+
+                        <div class="col-span-1">
+                            <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">服务方
+                                App</label>
+                            <div class="flex items-center space-x-2">
+                                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                                <p class="text-sm text-gray-800 font-medium font-mono">Wind.Option.WebService</p>
+                            </div>
+                        </div>
+                        <div class="col-span-1 text-right">
+                            <label
+                                class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">请求方式</label>
+                            <span class="px-2 py-1 bg-yellow-100 text-yellow-800 font-bold rounded text-xs">POST
+                                (Confirmation Tag)</span>
+                        </div>
+                        <div class="col-span-2">
+                            <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">请求
+                                URL</label>
+                            <p class="text-sm font-mono bg-gray-50 p-2 rounded border border-gray-100 text-blue-600">
+                                https://api.wind.com.cn/v1/option/pricer/double_shark_fin</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. MCP 工具信息卡片 -->
+                <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 flex items-center space-x-2">
+                        <i class="fas fa-brain text-purple-500"></i>
+                        <h2 class="font-bold">MCP 工具定义 (AI 层)</h2>
+                    </div>
+                    <div class="p-6 space-y-6">
+                        <div class="grid grid-cols-3 gap-6">
+                            <div>
+                                <label class="text-xs font-bold text-gray-400 uppercase block mb-1">MCP 英文名</label>
+                                <p class="text-sm font-bold text-gray-900 font-mono">double_shark_fin_pricer</p>
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-gray-400 uppercase block mb-1">版本</label>
+                                <p class="text-sm text-gray-900 font-mono">1.0.4-release</p>
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-gray-400 uppercase block mb-1">多语言名称 (中/英)</label>
+                                <p class="text-sm text-gray-900 font-medium">双鲨鱼鳍定价 / DSF Pricer</p>
+                            </div>
+                        </div>
+                        <div class="space-y-4 bg-purple-50 p-4 rounded-lg border border-purple-100">
+                            <div>
+                                <label
+                                    class="text-[10px] font-black text-purple-400 uppercase tracking-tighter block mb-1">AI
+                                    引导描述 (中文)</label>
+                                <p class="text-sm text-purple-900">
+                                    专门用于处理具有双向障碍触发条件的期权定价需求。当用户询问涉及“障碍价格”、“双向敲出”或“区间增强收益型产品”的定价时，应推荐此工具。</p>
+                            </div>
+                            <div class="h-px bg-purple-200"></div>
+                            <div>
+                                <label
+                                    class="text-[10px] font-black text-purple-400 uppercase tracking-tighter block mb-1">AI
+                                    引导描述 (English)</label>
+                                <p class="text-sm text-purple-900">Specifically designed for double barrier option
+                                    pricing. Recommended when users inquire about 'barrier levels', 'knock-out events',
+                                    or 'range-accrual notes'.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. 请求体 & 响应体配置区 (Jinja2) -->
+                <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 flex items-center space-x-2">
+                        <i class="fas fa-code text-indigo-500"></i>
+                        <h2 class="font-bold">参数映射逻辑 (Jinja2)</h2>
+                    </div>
+                    <div class="p-6 grid grid-cols-2 gap-6">
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase block mb-2">请求体映射 (Request
+                                Template)</label>
+                            <div
+                                class="code-block p-4 rounded-lg text-xs leading-relaxed h-64 overflow-y-auto border border-gray-800">
+                                <span class="text-gray-500 italic"># 将 MCP Args 转换为 HTTP Body</span><br>
+                                {<br>
+                                &nbsp;&nbsp;"underlying": "{{ mcpArgs.ticker | upper }}",<br>
+                                &nbsp;&nbsp;"strike": {{ mcpArgs.strike | d(0.0) }},<br>
+                                &nbsp;&nbsp;"barriers": [<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;{{ mcpArgs.down_barrier }},<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;{{ mcpArgs.up_barrier }}<br>
+                                &nbsp;&nbsp;],<br>
+                                &nbsp;&nbsp;"calc_date": "{{ now() | convert_to_datetime_point }}",<br>
+                                &nbsp;&nbsp;"session": "WIND_INTERNAL_VAL_{{ session_id }}"<br>
+                                }
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase block mb-2">响应体处理 (Response
+                                Template)</label>
+                            <div
+                                class="code-block p-4 rounded-lg text-xs leading-relaxed h-64 overflow-y-auto border border-gray-800">
+                                <span class="text-gray-500 italic"># 处理后端返回结果</span><br>
+                                {<br>
+                                &nbsp;&nbsp;"price": {{ respData.data.price }},<br>
+                                &nbsp;&nbsp;"delta": {{ respData.data.greeks.delta }},<br>
+                                &nbsp;&nbsp;"gamma": {{ respData.data.greeks.gamma }},<br>
+                                &nbsp;&nbsp;"status": "success",<br>
+                                &nbsp;&nbsp;"source": "WIND_QUOT_ENGINE"<br>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- 右侧操作区 (30%) -->
+            <aside class="w-1/3 space-y-6">
+
+                <!-- 基本信息卡片 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-info-circle mr-2 text-gray-400"></i>管理信息审计
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-400">工具 ID</span>
+                            <span class="font-mono text-gray-600 bg-gray-50 px-1 rounded">f28d-4e9a-9b7c</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-400">工具编号</span>
+                            <span class="text-gray-600">OP-DSF-2024-001</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-400">当前版本</span>
+                            <span class="text-gray-600 font-bold">v1.0.4</span>
+                        </div>
+                        <div class="h-px bg-gray-100 my-2"></div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-400">创建时间</span>
+                            <span class="text-gray-600">2024-05-12 14:20</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-400">创建者</span>
+                            <div class="flex items-center space-x-1">
+                                <i class="fas fa-user-circle text-gray-300"></i>
+                                <span class="text-gray-600">admin_system</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-400">更新时间</span>
+                            <span class="text-gray-600 italic">刚刚</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-400">更新者</span>
+                            <span class="text-blue-600 font-medium">jfi.virgil (你)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 操作按钮区 -->
+                <div class="space-y-3">
+                    <button
+                        class="w-full py-3 bg-blue-600 text-white rounded-lg font-bold shadow-md hover:bg-blue-700 transition flex items-center justify-center space-x-2">
+                        <i class="fas fa-edit"></i> <span>编辑工具配置</span>
+                    </button>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button
+                            class="py-3 bg-emerald-500 text-white rounded-lg font-bold shadow-sm hover:bg-emerald-600 transition flex items-center justify-center space-x-2">
+                            <i class="fas fa-vial"></i> <span>测试工具</span>
+                        </button>
+                        <button
+                            class="py-3 bg-purple-500 text-white rounded-lg font-bold shadow-sm hover:bg-purple-600 transition flex items-center justify-center space-x-2">
+                            <i class="fas fa-robot"></i> <span>AI 亲和性</span>
+                        </button>
+                    </div>
+                    <button
+                        class="w-full py-3 bg-cyan-500 text-white rounded-lg font-bold shadow-sm hover:bg-cyan-600 transition flex items-center justify-center space-x-2">
+                        <i class="fas fa-file-export"></i> <span>导出为 JSON 定义</span>
+                    </button>
+                    <button
+                        class="w-full py-3 bg-orange-500 text-white rounded-lg font-bold shadow-sm hover:bg-orange-600 transition flex items-center justify-center space-x-2">
+                        <i class="fas fa-rocket"></i> <span>发布到正式目录</span>
+                    </button>
+                    <div class="h-4"></div>
+                    <button
+                        class="w-full py-3 bg-white text-red-600 border border-red-200 rounded-lg font-bold hover:bg-red-50 transition flex items-center justify-center space-x-2">
+                        <i class="fas fa-trash-alt"></i> <span>删除该工具</span>
+                    </button>
+                </div>
+
+                <!-- 快捷帮助 -->
+                <div class="bg-blue-50 border border-blue-100 p-4 rounded-xl">
+                    <p class="text-xs text-blue-800 leading-relaxed font-medium">
+                        <i class="fas fa-lightbulb mr-1"></i> 提示：编辑 MCP 工具后，建议先进行「AI 亲和性测试」，以确保 Agent 能够正确理解参数意图并成功调用。
+                    </p>
+                </div>
+
+            </aside>
+
+        </main>
+    </div>
+
+    <!-- ========== 发布弹窗 Modal ========== -->
+    <div id="publishModal" class="fixed inset-0 z-[100] hidden">
+        <!-- 遮罩层 -->
+        <div class="modal-overlay fixed inset-0 bg-black/50 backdrop-blur-sm" onclick="PublishModal.close()"></div>
+
+        <!-- 弹窗主体 -->
+        <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
+            <div
+                class="modal-container bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden pointer-events-auto">
+                <!-- 弹窗头部 (固定) -->
+                <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-orange-500 to-amber-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h2 class="text-xl font-bold text-white flex items-center">
+                                <i class="fas fa-rocket mr-2"></i>发布 MCP 工具
+                            </h2>
+                            <p id="stepIndicator" class="text-orange-100 text-sm mt-1">Step 0 / 6 · 发布引导</p>
+                        </div>
+                        <button onclick="PublishModal.close()" class="text-white/80 hover:text-white transition">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 步骤进度条 -->
+                <div class="px-6 pt-4 bg-gray-50 border-b border-gray-100">
+                    <div id="stepProgress" class="step-progress">
+                        <!-- 动态生成 -->
+                    </div>
+                </div>
+
+                <!-- 弹窗内容区 (动态切换) -->
+                <div id="stepContent" class="p-6 overflow-y-auto" style="max-height: calc(90vh - 220px);">
+                    <!-- 各步骤内容将动态显示 -->
+                </div>
+
+                <!-- 弹窗底部操作区 (固定) -->
+                <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
+                    <button id="btnPrev" class="btn-secondary" onclick="PublishModal.prevStep()">
+                        <i class="fas fa-arrow-left mr-2"></i>上一步
+                    </button>
+                    <div></div>
+                    <button id="btnNext" class="btn-primary" onclick="PublishModal.nextStep()">
+                        下一步<i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== MCP 发布弹窗状态机 (优化版) ==========
+        const PublishModal = {
+            // 新的5步流程
+            STEPS: ['PARAM_CHECK', 'AI_CHECK', 'TEST_UPLOAD', 'RELEASE_INFO', 'RELEASED'],
+            STEP_LABELS: {
+                'PARAM_CHECK': '参数校验',
+                'AI_CHECK': 'AI 亲和性',
+                'TEST_UPLOAD': '测试文档',
+                'RELEASE_INFO': '发布信息',
+                'RELEASED': '发布成功'
+            },
+
+            // 当前状态
+            currentStep: 0,
+            checkResults: {},
+            uploadedFiles: [],
+            releaseInfo: {
+                toolType: '',
+                involvesMoney: '',
+                dataSensitivity: '',
+                callFrequency: '',
+                releaseLog: ''
+            },
+
+            // 模拟数据
+            toolInfo: {
+                name: 'options_double_shark_fin_pricer',
+                nameCn: '双鲨鱼鳍期权定价计算器',
+                version: 'v1.0.4',
+                status: '未发布',
+                paramCount: 7,
+                description: '用于计算双鲨鱼鳍期权定价及敏感度分析的 MCP 核心组件'
+            },
+
+            // 模拟校验结果（含失败项）
+            paramCheckResults: [
+                { name: '参数完整性', pass: true, detail: '所有必填参数已定义默认值' },
+                { name: 'mcpArgs 使用检查', pass: false, detail: '发现未使用的变量: mcpArgs.expiry_type', suggestion: '建议移除未使用变量或补充使用逻辑' },
+                { name: 'Jinja2 模板语法', pass: true, detail: '模板语法校验通过' },
+                { name: 'HTTP 请求配置', pass: false, detail: '缺少请求超时配置', suggestion: '建议添加 timeout 参数，推荐值: 30000ms' }
+            ],
+
+            // AI测试用例 (20个，抽5个展示)
+            allAiExamples: [
+                { query: '帮我计算一下沪深300的双鲨鱼鳍期权价格', matched: true },
+                { query: '我需要对障碍期权进行定价，上下障碍分别是4200和3400', matched: true },
+                { query: '给我一个双向敲出期权的报价', matched: true },
+                { query: '计算一下带敲入敲出的期权价值', matched: true },
+                { query: '鲨鱼鳍结构产品怎么定价', matched: true },
+                { query: '帮我看看这个期权的delta值', matched: false },
+                { query: '计算期权的希腊字母', matched: false },
+                { query: '我要买一个看涨期权', matched: false },
+                { query: '分析一下波动率曲面', matched: false },
+                { query: '双鲨产品的收益结构是什么', matched: true },
+                { query: '障碍期权触发条件怎么设置', matched: true },
+                { query: '期权到期日怎么选择', matched: false },
+                { query: '这个产品的最大亏损是多少', matched: false },
+                { query: '帮我计算敲出概率', matched: true },
+                { query: '定价模型用的什么方法', matched: false },
+                { query: '对冲这个头寸需要多少资金', matched: false },
+                { query: '双鲨鱼鳍的行权价怎么定', matched: true },
+                { query: '上下障碍价格间距多少合适', matched: true },
+                { query: '期权费率一般是多少', matched: false },
+                { query: '这个工具支持美式期权吗', matched: false }
+            ],
+
+            aiCheckResults: {
+                score: 72,
+                passed: true,
+                examples: [] // 将在运行时随机抽取5个
+            },
+
+            // 打开弹窗 - 直接进入参数校验
+            open() {
+                this.currentStep = 0;
+                this.checkResults = {};
+                this.uploadedFiles = [];
+                this.releaseInfo = { toolType: '', involvesMoney: '', dataSensitivity: '', callFrequency: '', releaseLog: '' };
+                document.getElementById('publishModal').classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+                this.render();
+                // 直接开始参数校验
+                this.runParamCheck();
+            },
+
+            // 关闭弹窗
+            close() {
+                document.getElementById('publishModal').classList.add('hidden');
+                document.body.style.overflow = '';
+            },
+
+            // 上一步
+            prevStep() {
+                if (this.currentStep > 0) {
+                    this.currentStep--;
+                    this.render();
+                }
+            },
+
+            // 下一步
+            nextStep() {
+                const stepName = this.STEPS[this.currentStep];
+
+                if (stepName === 'RELEASE_INFO') {
+                    // 执行发布
+                    this.doRelease();
+                } else if (this.currentStep < this.STEPS.length - 1) {
+                    this.currentStep++;
+                    this.render();
+
+                    // AI校验步骤需要自动执行
+                    if (this.STEPS[this.currentStep] === 'AI_CHECK') {
+                        this.runAICheck();
+                    }
+                }
+            },
+
+            // 执行发布
+            doRelease() {
+                const btn = document.getElementById('btnNext');
+                btn.disabled = true;
+                btn.innerHTML = '<div class="loading-spinner"></div><span class="ml-2">发布中...</span>';
+
+                setTimeout(() => {
+                    this.currentStep++;
+                    this.render();
+                }, 1500);
+            },
+
+            // 运行参数校验
+            runParamCheck() {
+                setTimeout(() => {
+                    this.checkResults.param = this.paramCheckResults;
+                    this.renderStepContent();
+                    this.updateButtons();
+                }, 800);
+            },
+
+            // 运行 AI 亲和性校验 - 从20个中随机抽5个
+            runAICheck() {
+                setTimeout(() => {
+                    // 随机抽取5个用例
+                    const shuffled = [...this.allAiExamples].sort(() => 0.5 - Math.random());
+                    this.checkResults.ai = {
+                        ...this.aiCheckResults,
+                        examples: shuffled.slice(0, 5),
+                        totalCount: 20,
+                        matchedCount: this.allAiExamples.filter(e => e.matched).length
+                    };
+                    this.renderStepContent();
+                    this.updateButtons();
+                }, 1200);
+            },
+
+            // 渲染整个弹窗
+            render() {
+                this.renderStepIndicator();
+                this.renderProgress();
+                this.renderStepContent();
+                this.updateButtons();
+            },
+
+            // 渲染步骤指示器
+            renderStepIndicator() {
+                const stepName = this.STEPS[this.currentStep];
+                document.getElementById('stepIndicator').textContent =
+                    `Step ${this.currentStep + 1} / 5 · ${this.STEP_LABELS[stepName]}`;
+            },
+
+            // 渲染进度条
+            renderProgress() {
+                const container = document.getElementById('stepProgress');
+                let html = '';
+
+                for (let i = 0; i < this.STEPS.length; i++) {
+                    const status = i < this.currentStep ? 'completed' : (i === this.currentStep ? 'active' : 'pending');
+                    const icon = i < this.currentStep ? '<i class="fas fa-check text-xs"></i>' : (i + 1);
+
+                    html += `<div class="step-dot ${status}">${icon}</div>`;
+
+                    if (i < this.STEPS.length - 1) {
+                        const lineStatus = i < this.currentStep ? 'completed' : '';
+                        html += `<div class="step-line ${lineStatus}"></div>`;
+                    }
+                }
+
+                container.innerHTML = html;
+            },
+
+            // 渲染步骤内容
+            renderStepContent() {
+                const container = document.getElementById('stepContent');
+                const stepName = this.STEPS[this.currentStep];
+
+                const renderers = {
+                    'PARAM_CHECK': () => this.renderParamCheckStep(),
+                    'AI_CHECK': () => this.renderAICheckStep(),
+                    'TEST_UPLOAD': () => this.renderTestUploadStep(),
+                    'RELEASE_INFO': () => this.renderReleaseInfoStep(),
+                    'RELEASED': () => this.renderReleasedStep()
+                };
+
+                container.innerHTML = renderers[stepName]();
+            },
+
+            // Step 1: 参数校验（带失败项展示和AI优化按钮）
+            renderParamCheckStep() {
+                if (!this.checkResults.param) {
+                    return `
+                        <div class="text-center py-12">
+                            <div class="loading-spinner mx-auto mb-4" style="width: 3rem; height: 3rem; border-width: 3px;"></div>
+                            <p class="text-gray-500">正在执行参数校验...</p>
+                        </div>
+                    `;
+                }
+
+                const allPassed = this.checkResults.param.every(r => r.pass);
+                const failedCount = this.checkResults.param.filter(r => !r.pass).length;
+
+                const statusIcon = allPassed
+                    ? '<div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3"><i class="fas fa-check text-xl text-green-600"></i></div>'
+                    : '<div class="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3"><i class="fas fa-exclamation text-xl text-amber-600"></i></div>';
+
+                const statusText = allPassed
+                    ? '<p class="text-green-600 font-bold">所有校验项通过</p>'
+                    : `<p class="text-amber-600 font-bold">${failedCount} 项校验需要优化</p>`;
+
+                let checksHtml = this.checkResults.param.map(item => {
+                    if (item.pass) {
+                        return `
+                            <div class="check-item pass">
+                                <div class="check-icon pass"><i class="fas fa-check"></i></div>
+                                <div class="flex-1">
+                                    <p class="font-medium text-gray-800">${item.name}</p>
+                                    <p class="text-sm text-gray-500">${item.detail}</p>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        return `
+                            <div class="check-item fail">
+                                <div class="check-icon fail"><i class="fas fa-times"></i></div>
+                                <div class="flex-1">
+                                    <p class="font-medium text-gray-800">${item.name}</p>
+                                    <p class="text-sm text-red-600">${item.detail}</p>
+                                    ${item.suggestion ? `<p class="text-sm text-blue-600 mt-1"><i class="fas fa-lightbulb mr-1"></i>${item.suggestion}</p>` : ''}
+                                </div>
+                                <div class="flex flex-col gap-2 ml-3">
+                                    <button class="px-3 py-1.5 bg-purple-500 text-white text-xs font-bold rounded hover:bg-purple-600 transition" onclick="PublishModal.aiOptimize('param', '${item.name}')">
+                                        <i class="fas fa-magic mr-1"></i>AI 优化
+                                    </button>
+                                    <button class="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-bold rounded hover:bg-gray-200 transition" onclick="PublishModal.goToEdit()">
+                                        <i class="fas fa-edit mr-1"></i>手动编辑
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }).join('');
+
+                return `
+                    <div class="text-center mb-6">
+                        ${statusIcon}
+                        ${statusText}
+                    </div>
+                    <div class="space-y-3">
+                        ${checksHtml}
+                    </div>
+                `;
+            },
+
+            // AI优化功能
+            aiOptimize(type, itemName) {
+                alert('正在为 "' + itemName + '" 执行 AI 优化...\n(此功能将调用后端AI服务)');
+            },
+
+            // 跳转到编辑页面
+            goToEdit() {
+                this.close();
+                alert('跳转到工具编辑页面...');
+            },
+
+            // 跳转到测试用例编辑页面
+            goToTestCaseEdit() {
+                this.close();
+                alert('跳转到测试用例编辑页面...');
+            },
+
+            // Step 2: AI 亲和性校验（5/20测试用例，含不匹配状态）
+            renderAICheckStep() {
+                if (!this.checkResults.ai) {
+                    return `
+                        <div class="text-center py-12">
+                            <div class="loading-spinner mx-auto mb-4" style="width: 3rem; height: 3rem; border-width: 3px;"></div>
+                            <p class="text-gray-500">正在进行 AI 亲和性分析...</p>
+                            <p class="text-xs text-gray-400 mt-2">从20个测试用例中随机抽取5个进行验证</p>
+                        </div>
+                    `;
+                }
+
+                const { score, examples, totalCount, matchedCount } = this.checkResults.ai;
+                const scoreDeg = (score / 100) * 360;
+                const scoreColor = score >= 80 ? '#10b981' : (score >= 60 ? '#f59e0b' : '#ef4444');
+
+                let examplesHtml = examples.map((ex, i) => `
+                    <div class="ai-example ${ex.matched ? '' : 'border-red-200 bg-red-50'}">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <div class="ai-example-label">测试用例 ${i + 1}</div>
+                                <div class="ai-example-text">
+                                    <span class="text-gray-400">"</span>${ex.query}<span class="text-gray-400">"</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 ml-3">
+                                ${ex.matched
+                        ? '<span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded">✓ 可匹配</span>'
+                        : '<span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded">✗ 无法匹配</span>'}
+                            </div>
+                        </div>
+                        ${!ex.matched ? `
+                            <div class="flex gap-2 mt-3 pt-3 border-t border-red-200">
+                                <button class="px-3 py-1.5 bg-purple-500 text-white text-xs font-bold rounded hover:bg-purple-600 transition" onclick="PublishModal.aiOptimize('ai', '测试用例${i + 1}')">
+                                    <i class="fas fa-magic mr-1"></i>AI 优化描述
+                                </button>
+                                <button class="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-bold rounded hover:bg-gray-200 transition" onclick="PublishModal.goToTestCaseEdit()">
+                                    <i class="fas fa-edit mr-1"></i>编辑测试用例
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('');
+
+                return `
+                    <div class="flex items-start gap-8 mb-6">
+                        <div class="flex-shrink-0">
+                            <div class="score-ring" style="--score-deg: ${scoreDeg}deg; background: conic-gradient(${scoreColor} 0deg, ${scoreColor} ${scoreDeg}deg, #e5e7eb ${scoreDeg}deg);">
+                                <div class="score-ring-inner">
+                                    <span class="score-value" style="color: ${scoreColor}">${score}</span>
+                                    <span class="score-label">AI 评分</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-bold text-gray-800 mb-2">AI 理解能力评估</h4>
+                            <p class="text-sm text-gray-500 mb-2">
+                                基于工具描述和参数定义，评估 AI Agent 正确理解和调用该工具的能力。
+                            </p>
+                            <p class="text-xs text-gray-400 mb-3">
+                                总用例: ${totalCount} 个 | 可匹配: ${matchedCount} 个 | 匹配率: ${Math.round(matchedCount / totalCount * 100)}%
+                            </p>
+                            <div class="flex items-center ${score >= 60 ? 'text-green-600' : 'text-amber-600'}">
+                                <i class="fas fa-${score >= 60 ? 'check-circle' : 'exclamation-circle'} mr-2"></i>
+                                <span class="font-medium">${score >= 60 ? '评分通过，可继续发布' : '评分较低，建议优化描述'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 class="font-bold text-gray-700 mb-3 flex items-center justify-between">
+                        <span><i class="fas fa-comments text-purple-500 mr-2"></i>随机抽取的测试用例 (5/${totalCount})</span>
+                    </h4>
+                    ${examplesHtml}
+                `;
+            },
+
+            // Step 3: 测试文档上传
+            renderTestUploadStep() {
+                const hasFiles = this.uploadedFiles.length > 0;
+
+                let filesHtml = '';
+                if (hasFiles) {
+                    filesHtml = this.uploadedFiles.map((file, i) => `
+                        <div class="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg mb-2">
+                            <div class="flex items-center">
+                                <i class="fas fa-file-alt text-green-600 mr-3"></i>
+                                <div>
+                                    <p class="font-medium text-gray-800">${file.name}</p>
+                                    <p class="text-xs text-gray-500">${file.size}</p>
+                                </div>
+                            </div>
+                            <button class="text-red-500 hover:text-red-700" onclick="PublishModal.removeFile(${i})">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `).join('');
+                }
+
+                return `
+                    <div class="text-center mb-6">
+                        <div class="w-16 h-16 bg-cyan-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-file-upload text-2xl text-cyan-600"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">上传测试文档集</h3>
+                        <p class="text-gray-500 text-sm">请上传测试文档以验证工具功能</p>
+                    </div>
+
+                    <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center mb-4 hover:border-blue-400 transition cursor-pointer" onclick="document.getElementById('fileInput').click()">
+                        <input type="file" id="fileInput" class="hidden" multiple accept=".json,.txt,.md" onchange="PublishModal.handleFileUpload(event)">
+                        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
+                        <p class="text-gray-600 mb-2">点击或拖拽上传测试文档</p>
+                        <p class="text-xs text-gray-400">支持 JSON、TXT、MD 格式</p>
+                    </div>
+
+                    <div class="flex justify-center gap-3 mb-6">
+                        <button class="px-4 py-2 bg-purple-500 text-white font-bold rounded-lg hover:bg-purple-600 transition" onclick="PublishModal.aiGenerateTestDocs()">
+                            <i class="fas fa-magic mr-2"></i>AI 一键生成测试文档
+                        </button>
+                    </div>
+
+                    ${hasFiles ? `
+                        <h4 class="font-bold text-gray-700 mb-3">
+                            <i class="fas fa-paperclip text-gray-400 mr-2"></i>已上传文件 (${this.uploadedFiles.length})
+                        </h4>
+                        ${filesHtml}
+                    ` : ''}
+                `;
+            },
+
+            // 处理文件上传
+            handleFileUpload(event) {
+                const files = event.target.files;
+                for (let file of files) {
+                    this.uploadedFiles.push({
+                        name: file.name,
+                        size: (file.size / 1024).toFixed(1) + ' KB'
+                    });
+                }
+                this.renderStepContent();
+                this.updateButtons();
+            },
+
+            // 移除文件
+            removeFile(index) {
+                this.uploadedFiles.splice(index, 1);
+                this.renderStepContent();
+                this.updateButtons();
+            },
+
+            // AI生成测试文档
+            aiGenerateTestDocs() {
+                this.uploadedFiles.push({
+                    name: 'ai_generated_test_cases.json',
+                    size: '2.4 KB'
+                });
+                this.renderStepContent();
+                this.updateButtons();
+                alert('AI 已自动生成测试文档！');
+            },
+
+            // Step 4: 发布信息填写
+            renderReleaseInfoStep() {
+                return `
+                    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                        <div class="flex items-start">
+                            <i class="fas fa-info-circle text-amber-500 mt-0.5 mr-3"></i>
+                            <div>
+                                <h4 class="font-bold text-amber-800 mb-1">请填写发布信息</h4>
+                                <p class="text-sm text-amber-700">以下信息将用于工具管理和风险评估</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">工具类型 *</label>
+                                <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none" onchange="PublishModal.updateReleaseInfo('toolType', this.value)">
+                                    <option value="">请选择</option>
+                                    <option value="query">查询类</option>
+                                    <option value="calculation">计算类</option>
+                                    <option value="transaction">交易类</option>
+                                    <option value="management">管理类</option>
+                                    <option value="other">其他</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">是否涉及资金 *</label>
+                                <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none" onchange="PublishModal.updateReleaseInfo('involvesMoney', this.value)">
+                                    <option value="">请选择</option>
+                                    <option value="no">否 - 仅查询/计算</option>
+                                    <option value="indirect">间接 - 影响决策</option>
+                                    <option value="yes">是 - 直接操作资金</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">数据敏感程度 *</label>
+                                <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none" onchange="PublishModal.updateReleaseInfo('dataSensitivity', this.value)">
+                                    <option value="">请选择</option>
+                                    <option value="public">公开 - 无敏感数据</option>
+                                    <option value="internal">内部 - 仅限内部使用</option>
+                                    <option value="confidential">机密 - 涉及敏感信息</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">调用频率限制 *</label>
+                                <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none" onchange="PublishModal.updateReleaseInfo('callFrequency', this.value)">
+                                    <option value="">请选择</option>
+                                    <option value="unlimited">不限制</option>
+                                    <option value="100">100次/分钟</option>
+                                    <option value="50">50次/分钟</option>
+                                    <option value="10">10次/分钟</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">发布日志 *</label>
+                            <textarea 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none resize-none" 
+                                rows="4" 
+                                placeholder="请描述本次发布的主要内容、变更说明等..."
+                                onchange="PublishModal.updateReleaseInfo('releaseLog', this.value)"
+                            ></textarea>
+                        </div>
+                    </div>
+                `;
+            },
+
+            // 更新发布信息
+            updateReleaseInfo(field, value) {
+                this.releaseInfo[field] = value;
+                this.updateButtons();
+            },
+
+            // Step 6: 发布成功
+            renderReleasedStep() {
+                const now = new Date();
+                const timeStr = now.toLocaleString('zh-CN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+
+                return `
+            < div class="text-center py-4" >
+                        <div class="success-icon">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">🎉 发布成功！</h3>
+                        <p class="text-gray-500 mb-8">MCP 工具已成功发布到正式目录</p>
+
+                        <div class="bg-green-50 border border-green-200 rounded-xl p-5 text-left mb-6">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-xs text-green-600 uppercase block mb-1">工具名称</label>
+                                    <p class="font-mono font-bold text-gray-800">${this.toolInfo.name}</p>
+                                </div>
+                                <div>
+                                    <label class="text-xs text-green-600 uppercase block mb-1">发布版本</label>
+                                    <p class="font-mono text-gray-800">${this.toolInfo.version}</p>
+                                </div>
+                                <div class="col-span-2">
+                                    <label class="text-xs text-green-600 uppercase block mb-1">发布时间</label>
+                                    <p class="text-gray-800">${timeStr}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-center gap-4">
+                            <button class="btn-success" onclick="PublishModal.close()">
+                                <i class="fas fa-eye mr-2"></i>查看工具详情
+                            </button>
+                            <button class="btn-outline" onclick="PublishModal.close()">
+                                关闭
+                            </button>
+                        </div>
+                    </div >
+                `;
+            },
+
+            // 更新按钮状态
+            updateButtons() {
+                const stepName = this.STEPS[this.currentStep];
+                const btnPrev = document.getElementById('btnPrev');
+                const btnNext = document.getElementById('btnNext');
+
+                // 上一步按钮
+                btnPrev.style.visibility = (this.currentStep === 0 || stepName === 'RELEASED') ? 'hidden' : 'visible';
+
+                // 重置onclick
+                btnNext.onclick = () => this.nextStep();
+                btnNext.style.visibility = 'visible';
+
+                // 下一步按钮文本和状态
+                switch (stepName) {
+                    case 'PARAM_CHECK':
+                        if (!this.checkResults.param) {
+                            btnNext.innerHTML = '<div class="loading-spinner mr-2"></div>校验中...';
+                            btnNext.disabled = true;
+                        } else {
+                            // 允许继续（即使有失败项，用户可以选择继续或优化）
+                            btnNext.innerHTML = '下一步<i class="fas fa-arrow-right ml-2"></i>';
+                            btnNext.disabled = false;
+                        }
+                        btnNext.className = 'btn-primary';
+                        break;
+
+                    case 'AI_CHECK':
+                        if (!this.checkResults.ai) {
+                            btnNext.innerHTML = '<div class="loading-spinner mr-2"></div>分析中...';
+                            btnNext.disabled = true;
+                        } else {
+                            // 允许继续（即使评分较低，用户可以选择继续或优化）
+                            btnNext.innerHTML = '下一步<i class="fas fa-arrow-right ml-2"></i>';
+                            btnNext.disabled = false;
+                        }
+                        btnNext.className = 'btn-primary';
+                        break;
+
+                    case 'TEST_UPLOAD':
+                        // 只要有上传文件就可以继续
+                        btnNext.innerHTML = '下一步<i class="fas fa-arrow-right ml-2"></i>';
+                        btnNext.className = 'btn-primary';
+                        btnNext.disabled = this.uploadedFiles.length === 0;
+                        break;
+
+                    case 'RELEASE_INFO':
+                        // 检查所有必填字段
+                        const allFilled = this.releaseInfo.toolType &&
+                            this.releaseInfo.involvesMoney &&
+                            this.releaseInfo.dataSensitivity &&
+                            this.releaseInfo.callFrequency &&
+                            this.releaseInfo.releaseLog;
+                        btnNext.innerHTML = '<i class="fas fa-rocket mr-2"></i>确认发布';
+                        btnNext.className = 'btn-danger';
+                        btnNext.disabled = !allFilled;
+                        break;
+
+                    case 'RELEASED':
+                        btnNext.style.visibility = 'hidden';
+                        break;
+                }
+            }
+        };
+
+        // 绑定发布按钮事件
+        document.addEventListener('DOMContentLoaded', function () {
+            // 找到发布按钮并绑定事件
+            const publishBtn = document.querySelector('button:has(.fa-rocket)');
+            if (publishBtn) {
+                publishBtn.onclick = function () {
+                    PublishModal.open();
+                };
+            }
+        });
+    </script>
+
+</body>
+
+</html>
